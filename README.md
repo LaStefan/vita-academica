@@ -1,11 +1,11 @@
 # 📚 Vita Academica  
 <p align="center">
-  <img src="https://img.shields.io/github/last-commit/github/docs" alt="Last Commit">
-  <img src="https://img.shields.io/github/issues/github/docs" alt="Issues">
-  <img src="https://img.shields.io/github/issues-pr/github/docs" alt="Pull Requests">
-  <img src="https://img.shields.io/github/license/github/docs" alt="License">
-  <img src="https://img.shields.io/github/contributors/github/docs" alt="Contributors">
-  <img src="https://img.shields.io/github/repo-size/github/docs" alt="Repo Size">
+  <img src="https://img.shields.io/github/last-commit/LaStefan/vita-academica" alt="Last Commit">
+  <img src="https://img.shields.io/github/issues/LaStefan/vita-academica" alt="Issues">
+  <img src="https://img.shields.io/github/issues-pr/LaStefan/vita-academica" alt="Pull Requests">
+  <img src="https://img.shields.io/github/license/LaStefan/vita-academica" alt="License">
+  <img src="https://img.shields.io/github/contributors/LaStefan/vita-academica" alt="Contributors">
+  <img src="https://img.shields.io/github/repo-size/LaStefan/vita-academica" alt="Repo Size">
 </p>
 
 
