@@ -1,8 +1,13 @@
 # 📚 Vita Academica  
-![GitHub repo size](https://img.shields.io/github/repo-size/yourusername/vita-academica)  
-![GitHub contributors](https://img.shields.io/github/contributors/yourusername/vita-academica)  
-![GitHub stars](https://img.shields.io/github/stars/yourusername/vita-academica?style=social)  
-![GitHub license](https://img.shields.io/github/license/yourusername/vita-academica)  
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/github/docs" alt="Last Commit">
+  <img src="https://img.shields.io/github/issues/github/docs" alt="Issues">
+  <img src="https://img.shields.io/github/issues-pr/github/docs" alt="Pull Requests">
+  <img src="https://img.shields.io/github/license/github/docs" alt="License">
+  <img src="https://img.shields.io/github/contributors/github/docs" alt="Contributors">
+  <img src="https://img.shields.io/github/repo-size/github/docs" alt="Repo Size">
+</p>
+
 
 > **A seamless digital platform for academic portfolio management.**  
 > Easily upload and manage CVs, generate academic websites, export in multiple formats (PDF, LaTeX, Word), and share achievements. AI-powered automation saves time, while university integrations simplify faculty management. 🚀🎓  
