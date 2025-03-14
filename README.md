@@ -138,9 +138,7 @@ This project is licensed under the MIT License.
 
 ## 💬 Contact & Community
 
-<p>
-📧 Email: support@vitaacademica.com
-🌍 Website: www.vitaacademica.com
-🐦 Twitter: @VitaAcademica
+📧 Email: support@vitaacademica.com  
+🌍 Website: [www.vitaacademica.com](http://www.vitaacademica.com)  
+🐦 Twitter: [@VitaAcademica](https://twitter.com/VitaAcademica)  
 📘 LinkedIn: Vita Academica  
-</p>
