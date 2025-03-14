@@ -40,7 +40,7 @@ const HeroSection = () => {
           
           <div className="rounded-xl overflow-hidden shadow-2xl transform transition-all hover:scale-[1.01] duration-300">
             <img 
-              src="/lovable-uploads/47d80b14-924f-4f8e-9442-ff48fe4d2095.png" 
+              src="src/assets/main-dashboard.png" 
               alt="Academic workspace dashboard showing Dr. Smith's profile with education, experience, achievements, and publications" 
               className="w-full h-auto object-cover"
             />
