@@ -18,6 +18,7 @@ import Templates from "./pages/Templates";
 import ActivityHistory from "./pages/ActivityHistory";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import PublishedWebsite from "./pages/PublishedWebsite";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/activity" element={<ActivityHistory />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/published/:domain" element={<PublishedWebsite />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

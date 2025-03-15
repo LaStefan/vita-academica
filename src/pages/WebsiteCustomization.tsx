@@ -5,12 +5,12 @@ import DashboardHeader from "@/components/DashboardHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Globe, 
-  LayoutTemplate, 
-  Edit, 
-  Plus, 
-  Minus, 
+import {
+  Globe,
+  LayoutTemplate,
+  Edit,
+  Plus,
+  Minus,
   Save,
   Eye,
   Settings,
@@ -24,6 +24,7 @@ import WebsitePreview from "@/components/WebsitePreview";
 import { ParsedCV } from "@/services/documentParser";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 // Mock CV data for preview purposes
 const mockCVData: ParsedCV = {
@@ -95,7 +96,9 @@ const WebsiteCustomization = () => {
     research: false,
     teaching: false
   });
-  
+
+  const navigate = useNavigate();
+
   const [domain, setDomain] = useState("janesmith");
   const [theme, setTheme] = useState("light");
   const [cvData, setCvData] = useState<ParsedCV | null>(null);
@@ -116,29 +119,39 @@ const WebsiteCustomization = () => {
 
   const handlePublish = () => {
     setIsPublishing(true);
-    
-    // Simulate publishing process
-    setTimeout(() => {
-      setIsPublishing(false);
+
+    try {
+      //Save the selected sections, template, and domain
+      localStorage.setItem(`cvData-${domain}`, JSON.stringify(cvData));
+      localStorage.setItem(`template-${domain}`, selectedTemplate);
+      localStorage.setItem(`sections-${domain}`, JSON.stringify(sections));
+
+      // Navigate to the published page
+      navigate(`/published/${domain}`);
+
       toast.success(`Website published at ${domain}.vitaacademica.com`, {
-        description: "Your academic website is now live!"
+        description: "Your academic website is now live!",
       });
-    }, 2000);
+    } catch (error) {
+      toast.error("Failed to publish website.");
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen bg-academic-light">
       <DashboardSidebar />
-      
+
       <div className="flex-1">
         <DashboardHeader />
-        
+
         <main className="p-6">
           <div className="mb-6">
             <h1 className="text-3xl font-bold">Website Generator</h1>
             <p className="text-gray-600">Create and customize your academic website</p>
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 space-y-6">
               <Card>
@@ -148,7 +161,7 @@ const WebsiteCustomization = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
-                      <div 
+                      <div
                         className={`border-2 rounded-md p-2 text-center cursor-pointer ${selectedTemplate === 'academic' ? 'border-academic-orange' : 'border-gray-200'}`}
                         onClick={() => setSelectedTemplate('academic')}
                       >
@@ -157,8 +170,8 @@ const WebsiteCustomization = () => {
                         </div>
                         <span className="text-sm font-medium">Academic</span>
                       </div>
-                      
-                      <div 
+
+                      <div
                         className={`border-2 rounded-md p-2 text-center cursor-pointer ${selectedTemplate === 'modern' ? 'border-academic-orange' : 'border-gray-200'}`}
                         onClick={() => setSelectedTemplate('modern')}
                       >
@@ -167,8 +180,8 @@ const WebsiteCustomization = () => {
                         </div>
                         <span className="text-sm font-medium">Modern</span>
                       </div>
-                      
-                      <div 
+
+                      <div
                         className={`border-2 rounded-md p-2 text-center cursor-pointer ${selectedTemplate === 'minimal' ? 'border-academic-orange' : 'border-gray-200'}`}
                         onClick={() => setSelectedTemplate('minimal')}
                       >
@@ -177,8 +190,8 @@ const WebsiteCustomization = () => {
                         </div>
                         <span className="text-sm font-medium">Minimal</span>
                       </div>
-                      
-                      <div 
+
+                      <div
                         className={`border-2 rounded-md p-2 text-center cursor-pointer ${selectedTemplate === 'portfolio' ? 'border-academic-orange' : 'border-gray-200'}`}
                         onClick={() => setSelectedTemplate('portfolio')}
                       >
@@ -188,14 +201,14 @@ const WebsiteCustomization = () => {
                         <span className="text-sm font-medium">Portfolio</span>
                       </div>
                     </div>
-                    
+
                     <Button className="w-full" variant="outline">
                       <Plus className="h-4 w-4 mr-2" /> Browse More Templates
                     </Button>
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Website Settings</CardTitle>
@@ -205,9 +218,9 @@ const WebsiteCustomization = () => {
                     <div className="space-y-2">
                       <Label htmlFor="domain">Domain</Label>
                       <div className="flex items-center">
-                        <Input 
-                          id="domain" 
-                          value={domain} 
+                        <Input
+                          id="domain"
+                          value={domain}
                           onChange={(e) => setDomain(e.target.value)}
                           className="rounded-r-none"
                         />
@@ -216,7 +229,7 @@ const WebsiteCustomization = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="theme">Theme</Label>
                       <Select value={theme} onValueChange={setTheme}>
@@ -230,9 +243,9 @@ const WebsiteCustomization = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    
-                    <Button 
-                      className="w-full mt-4" 
+
+                    <Button
+                      className="w-full mt-4"
                       variant="default"
                       onClick={handlePublish}
                       disabled={isPublishing}
@@ -248,7 +261,7 @@ const WebsiteCustomization = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Sections</CardTitle>
@@ -260,14 +273,14 @@ const WebsiteCustomization = () => {
                         <Label htmlFor={`website-section-${section}`} className="capitalize">
                           {section}
                         </Label>
-                        <Switch 
+                        <Switch
                           id={`website-section-${section}`}
                           checked={isVisible}
                           onCheckedChange={() => handleSectionToggle(section)}
                         />
                       </div>
                     ))}
-                    
+
                     <Button variant="outline" className="w-full mt-2">
                       <Plus className="h-4 w-4 mr-2" /> Add Custom Section
                     </Button>
@@ -275,7 +288,7 @@ const WebsiteCustomization = () => {
                 </CardContent>
               </Card>
             </div>
-            
+
             <div className="lg:col-span-2">
               <Card className="h-full">
                 <CardHeader className="flex-row justify-between items-center">
@@ -292,10 +305,10 @@ const WebsiteCustomization = () => {
                           <DialogTitle>Website Preview</DialogTitle>
                         </DialogHeader>
                         <div className="mt-4 border rounded">
-                          <WebsitePreview 
-                            cvData={cvData} 
-                            template={selectedTemplate} 
-                            websiteSettings={{ theme, domain, sections }} 
+                          <WebsitePreview
+                            cvData={cvData}
+                            template={selectedTemplate}
+                            websiteSettings={{ theme, domain, sections }}
                           />
                         </div>
                       </DialogContent>
@@ -310,10 +323,10 @@ const WebsiteCustomization = () => {
                 </CardHeader>
                 <CardContent className="h-[700px] overflow-y-auto">
                   {cvData ? (
-                    <WebsitePreview 
-                      cvData={cvData} 
-                      template={selectedTemplate} 
-                      websiteSettings={{ theme, domain, sections }} 
+                    <WebsitePreview
+                      cvData={cvData}
+                      template={selectedTemplate}
+                      websiteSettings={{ theme, domain, sections }}
                     />
                   ) : (
                     <div className="h-full flex items-center justify-center">
