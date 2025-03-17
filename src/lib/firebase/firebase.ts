@@ -3,6 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { firebaseConfig } from './config';
 
 // Initialize Firebase
@@ -10,6 +11,9 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+
+// Initialize Firebase Functions and get a reference to the service
+const functions = getFunctions(app);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
@@ -21,7 +25,8 @@ export const storage = getStorage(app);
 if (import.meta.env.DEV) {
   // Uncomment these lines to connect to Firebase emulators during development
   // connectAuthEmulator(auth, 'http://localhost:9099');
-  // connectFirestoreEmulator(db, 'localhost', 8080);
+  connectFirestoreEmulator(db, 'localhost', 8080);
+  // connectFunctionsEmulator(functions, 'localhost', 5001);
   // connectStorageEmulator(storage, 'localhost', 9199);
   console.log('Using Firebase services');
 }

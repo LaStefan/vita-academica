@@ -24,8 +24,8 @@ import WebsitePreview from "@/components/WebsitePreview";
 import { ParsedCV } from "@/services/documentParser";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-
+import { db } from "@/lib/firebase/firebase";
+import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
 // Mock CV data for preview purposes
 const mockCVData: ParsedCV = {
   personalInfo: {
@@ -97,8 +97,6 @@ const WebsiteCustomization = () => {
     teaching: false
   });
 
-  const navigate = useNavigate();
-
   const [domain, setDomain] = useState("janesmith");
   const [theme, setTheme] = useState("light");
   const [cvData, setCvData] = useState<ParsedCV | null>(null);
@@ -117,27 +115,65 @@ const WebsiteCustomization = () => {
     }));
   };
 
-  const handlePublish = () => {
+  const saveWebsite = async () => {
+    if (!domain || !cvData) return;
+
+    try {
+      const websiteData = {
+        cvData,
+        selectedTemplate,
+        sections,
+        domain,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Save (or update) the website data in Firestore
+      await setDoc(doc(collection(db, "websites"), domain), websiteData, { merge: true });
+
+      toast.success("Website saved successfully!");
+    } catch (error) {
+      console.error("Error saving website:", error);
+      toast.error("Failed to save website.");
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!domain || !cvData) {
+      toast.error("Domain and CV data are required to publish.");
+      return;
+    }
+
     setIsPublishing(true);
 
     try {
-      //Save the selected sections, template, and domain
-      localStorage.setItem(`cvData-${domain}`, JSON.stringify(cvData));
-      localStorage.setItem(`template-${domain}`, selectedTemplate);
-      localStorage.setItem(`sections-${domain}`, JSON.stringify(sections));
+      // Save website data in Firestore
+      const websiteData = {
+        cvData,
+        selectedTemplate,
+        sections,
+        theme,
+        domain,
+        publishedAt: new Date().toISOString(), // Add a timestamp for tracking
+      };
 
-      // Navigate to the published page
-      navigate(`/published/${domain}`);
+      await setDoc(doc(collection(db, "websites"), domain), websiteData, { merge: true });
 
-      toast.success(`Website published at ${domain}.vitaacademica.com`, {
-        description: "Your academic website is now live!",
+      toast.success("Website published successfully!", {
+        description: `Your site is live at: ${window.location.origin}/${domain}`,
       });
+
+      // Redirect to the live website
+      window.location.href = `${window.location.origin}/${domain}`;
+
     } catch (error) {
+      console.error("Error publishing website:", error);
       toast.error("Failed to publish website.");
     } finally {
       setIsPublishing(false);
     }
   };
+
+
 
   return (
     <div className="flex min-h-screen bg-academic-light">
@@ -316,7 +352,7 @@ const WebsiteCustomization = () => {
                     <Button variant="outline" size="sm">
                       <Settings className="h-4 w-4 mr-2" /> Customize
                     </Button>
-                    <Button size="sm">
+                    <Button size="sm" onClick={saveWebsite}>
                       <Save className="h-4 w-4 mr-2" /> Save
                     </Button>
                   </div>

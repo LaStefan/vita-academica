@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import WebsitePreview from "@/components/WebsitePreview";
 import { ParsedCV } from "@/services/documentParser";
+import { db } from "@/lib/firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const PublishedWebsite = () => {
     const { domain } = useParams();
@@ -9,24 +11,41 @@ const PublishedWebsite = () => {
     const [template, setTemplate] = useState<string>("academic");
     const [sections, setSections] = useState<Record<string, boolean>>({});
     const [theme, setTheme] = useState<string>("light");
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!domain) return;
 
-        //Load the CV data, template, and sections from localStorage
-        const storedData = localStorage.getItem(`cvData-${domain}`);
-        const storedTemplate = localStorage.getItem(`template-${domain}`);
-        const storedSections = localStorage.getItem(`sections-${domain}`);
-        const storedTheme = localStorage.getItem(`theme-${domain}`);
+        const fetchWebsiteData = async () => {
+            try {
+                const docRef = doc(db, "websites", domain);
+                const docSnap = await getDoc(docRef);
 
-        if (storedData) setCvData(JSON.parse(storedData));
-        if (storedTemplate) setTemplate(storedTemplate);
-        if (storedSections) setSections(JSON.parse(storedSections));
-        if (storedTheme) setTheme(storedTheme);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setCvData(data.cvData);
+                    setTemplate(data.selectedTemplate);
+                    setSections(data.sections);
+                    setTheme(data.theme);
+                } else {
+                    console.error("Website not found!");
+                }
+            } catch (error) {
+                console.error("Error fetching website:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWebsiteData();
     }, [domain]);
 
-    if (!cvData) {
+    if (loading) {
         return <p className="text-center mt-10">Loading website...</p>;
+    }
+
+    if (!cvData) {
+        return <p className="text-center mt-10 text-red-500">Website not found!</p>;
     }
 
     return (
