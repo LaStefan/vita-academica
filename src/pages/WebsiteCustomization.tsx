@@ -26,6 +26,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { db } from "@/lib/firebase/firebase";
 import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
+import PublishedWebsite from "./PublishedWebsite";
+import { renderToString } from "react-dom/server";
+
 // Mock CV data for preview purposes
 const mockCVData: ParsedCV = {
   personalInfo: {
@@ -138,41 +141,61 @@ const WebsiteCustomization = () => {
   };
 
   const handlePublish = async () => {
-    if (!domain || !cvData) {
-      toast.error("Domain and CV data are required to publish.");
-      return;
-    }
-
-    setIsPublishing(true);
 
     try {
-      // Save website data in Firestore
-      const websiteData = {
-        cvData,
-        selectedTemplate,
-        sections,
-        theme,
-        domain,
-        publishedAt: new Date().toISOString(), // Add a timestamp for tracking
+
+      const firebaseCSSURL = "http://localhost:9199/v0/b/testing-8d932.appspot.com/o/websites%2Fstyles.css?alt=media";
+
+      const websiteHTML = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${domain}'s Website</title>
+          <link rel="stylesheet" href="${firebaseCSSURL}">
+        </head>
+        <body>
+          ${renderToString(
+        <WebsitePreview
+          cvData={cvData}
+          template={selectedTemplate}
+          websiteSettings={{ theme, domain, sections }}
+        />
+      )}
+        </body>
+        </html>
+        `;
+
+      const payload = {
+        userId: domain,
+        website: websiteHTML,
+        metadata: {
+          selectedTemplate,
+          sections,
+          theme,
+          domain,
+        },
       };
 
-      await setDoc(doc(collection(db, "websites"), domain), websiteData, { merge: true });
-
-      toast.success("Website published successfully!", {
-        description: `Your site is live at: ${window.location.origin}/${domain}`,
+      const response = await fetch("http://127.0.0.1:5005/testing-8d932/us-central1/deployWebsite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload }),
       });
 
-      // Redirect to the live website
-      window.location.href = `${window.location.origin}/${domain}`;
-
+      const result = await response.json();
+      if (result.success) {
+        alert(`Website Published: ${result.url}`);
+      } else {
+        alert("Failed to publish.");
+      }
     } catch (error) {
-      console.error("Error publishing website:", error);
-      toast.error("Failed to publish website.");
-    } finally {
-      setIsPublishing(false);
+      console.error("Publishing failed:", error);
+      alert("Error publishing website.");
     }
-  };
 
+  };
 
 
   return (

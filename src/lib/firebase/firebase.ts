@@ -25,8 +25,8 @@ export const storage = getStorage(app);
 if (import.meta.env.DEV) {
   // Uncomment these lines to connect to Firebase emulators during development
   // connectAuthEmulator(auth, 'http://localhost:9099');
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  // connectFunctionsEmulator(functions, 'localhost', 5001);
+  // connectFirestoreEmulator(db, 'localhost', 8080);
+  // connectFunctionsEmulator(functions, 'localhost', 5005);
   // connectStorageEmulator(storage, 'localhost', 9199);
   console.log('Using Firebase services');
 }

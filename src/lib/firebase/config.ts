@@ -12,13 +12,13 @@
  */
 
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // Replace with actual API key in production
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "AIzaSyB1weLDpe68xkfWoDcUjmfn64-BS_3K0U8",
+  authDomain: "testing-vita-academica.firebaseapp.com",
+  projectId: "testing-vita-academica",
+  storageBucket: "testing-vita-academica.firebasestorage.app",
+  messagingSenderId: "914013505462",
+  appId: "1:914013505462:web:56e728053d4f2eaafba317",
+  measurementId: "G-SG928R98BL"
 };
 
 /**
@@ -30,8 +30,8 @@ export const firebaseConfig = {
  */
 export const isDevMode = (): boolean => {
   return (
-    firebaseConfig.apiKey === "YOUR_API_KEY" || 
-    !firebaseConfig.apiKey || 
+    firebaseConfig.apiKey === "YOUR_API_KEY" ||
+    !firebaseConfig.apiKey ||
     firebaseConfig.apiKey.includes("YOUR_")
   );
 };
