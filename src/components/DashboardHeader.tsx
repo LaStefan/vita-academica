@@ -1,17 +1,50 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Search, 
   Bell, 
   Menu,
-  User,
-  ChevronDown
+  ChevronDown,
+  LogOut
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useFirebase } from "@/lib/firebase/FirebaseContext";
+import { useNavigate } from "react-router-dom";
+import { signOutUser } from "@/lib/firebase/auth";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const DashboardHeader = () => {
+  const { currentUser } = useFirebase();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Error logging out");
+    }
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!currentUser || !currentUser.displayName) return "U";
+    
+    const nameParts = currentUser.displayName.split(" ");
+    if (nameParts.length === 1) return nameParts[0].substring(0, 2).toUpperCase();
+    
+    return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+  };
+
   return (
     <header className="border-b bg-white p-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -33,16 +66,33 @@ const DashboardHeader = () => {
           </span>
         </Button>
         
-        <div className="hidden sm:flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="" />
-            <AvatarFallback>JS</AvatarFallback>
-          </Avatar>
-          <Button variant="ghost" className="flex items-center gap-1 h-8 font-normal">
-            Dr. Smith
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-2 cursor-pointer">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={currentUser?.photoURL || ""} alt={currentUser?.displayName || "User"} />
+                <AvatarFallback>{getUserInitials()}</AvatarFallback>
+              </Avatar>
+              <Button variant="ghost" className="flex items-center gap-1 h-8 font-normal">
+                {currentUser?.displayName || "User"}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

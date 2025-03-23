@@ -5,21 +5,17 @@ import {
   signOut, 
   sendPasswordResetEmail,
   updateProfile,
+  updatePassword as firebaseUpdatePassword,
   GoogleAuthProvider,
   signInWithPopup,
   User,
-  UserCredential
+  UserCredential,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from 'firebase/auth';
+
 import { auth, db } from './firebase';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { isDevMode } from './config';
-import { 
-  simulateAsyncOperation, 
-  getMockUserId, 
-  logDevModeWarning, 
-  getMockUser, 
-  getMockUserCredential 
-} from '../utils/devModeUtils';
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 
 // Sign up with email and password
 export const signUpWithEmail = async (
@@ -27,11 +23,6 @@ export const signUpWithEmail = async (
   password: string, 
   displayName: string
 ): Promise<UserCredential> => {
-  if (isDevMode()) {
-    logDevModeWarning('authentication');
-    return simulateAsyncOperation(getMockUserCredential());
-  }
-  
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
@@ -55,11 +46,6 @@ export const signInWithEmail = async (
   email: string, 
   password: string
 ): Promise<UserCredential> => {
-  if (isDevMode()) {
-    logDevModeWarning('authentication');
-    return simulateAsyncOperation(getMockUserCredential());
-  }
-  
   try {
     return await signInWithEmailAndPassword(auth, email, password);
   } catch (error) {
@@ -70,11 +56,6 @@ export const signInWithEmail = async (
 
 // Sign in with Google
 export const signInWithGoogle = async (): Promise<UserCredential> => {
-  if (isDevMode()) {
-    logDevModeWarning('authentication');
-    return simulateAsyncOperation(getMockUserCredential());
-  }
-  
   try {
     const provider = new GoogleAuthProvider();
     const userCredential = await signInWithPopup(auth, provider);
@@ -91,11 +72,6 @@ export const signInWithGoogle = async (): Promise<UserCredential> => {
 
 // Sign out
 export const signOutUser = async (): Promise<void> => {
-  if (isDevMode()) {
-    logDevModeWarning('authentication');
-    return simulateAsyncOperation(undefined);
-  }
-  
   try {
     await signOut(auth);
   } catch (error) {
@@ -106,15 +82,58 @@ export const signOutUser = async (): Promise<void> => {
 
 // Send password reset email
 export const resetPassword = async (email: string): Promise<void> => {
-  if (isDevMode()) {
-    logDevModeWarning('password reset');
-    return simulateAsyncOperation(undefined);
-  }
-  
   try {
     await sendPasswordResetEmail(auth, email);
   } catch (error) {
     console.error('Error sending password reset email:', error);
+    throw error;
+  }
+};
+
+// Update user password
+export const updatePassword = async (
+  user: User, 
+  currentPassword: string, 
+  newPassword: string
+): Promise<void> => {
+  try {
+    // Re-authenticate user before updating password
+    if (!user.email) throw new Error('User email not found');
+    
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    
+    // Update password
+    await firebaseUpdatePassword(user, newPassword);
+  } catch (error) {
+    console.error('Error updating password:', error);
+    throw error;
+  }
+};
+
+// Update user profile
+export const updateUserProfile = async (
+  user: User,
+  profileData: { displayName?: string; photoURL?: string; [key: string]: any }
+): Promise<void> => {
+  try {
+    // Update Firebase Auth profile if display name or photo URL is provided
+    if (profileData.displayName || profileData.photoURL) {
+      const authUpdate: { displayName?: string; photoURL?: string } = {};
+      if (profileData.displayName) authUpdate.displayName = profileData.displayName;
+      if (profileData.photoURL) authUpdate.photoURL = profileData.photoURL;
+      
+      await updateProfile(user, authUpdate);
+    }
+    
+    // Update user document in Firestore
+    const userRef = doc(db, 'users', user.uid);
+    await updateDoc(userRef, {
+      ...profileData,
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
     throw error;
   }
 };
@@ -125,11 +144,6 @@ export const createUserDocument = async (
   additionalData: { displayName?: string } = {}
 ): Promise<void> => {
   if (!user) return;
-  
-  if (isDevMode()) {
-    logDevModeWarning('user document creation');
-    return simulateAsyncOperation(undefined);
-  }
   
   const userRef = doc(db, 'users', user.uid);
   const snapshot = await getDoc(userRef);
@@ -155,10 +169,5 @@ export const createUserDocument = async (
 
 // Get current authenticated user
 export const getCurrentUser = (): User | null => {
-  if (isDevMode()) {
-    // In development mode, always return the mock user
-    return getMockUser();
-  }
-  
   return auth.currentUser;
 };
