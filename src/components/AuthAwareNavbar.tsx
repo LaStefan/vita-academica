@@ -1,9 +1,11 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
-import { GraduationCap, User as UserIcon } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { GraduationCap, User as UserIcon, LogOut } from "lucide-react";
 import { useFirebase } from "@/lib/firebase/FirebaseContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { signOutUser } from "@/lib/firebase/auth";
+import { toast } from "sonner";
 
 /**
  * NavbarProps interface
@@ -20,19 +22,36 @@ interface NavbarProps {
 const AuthAwareNavbar: React.FC<NavbarProps> = ({ 
   showAuthButtons = true 
 }) => {
-  const { currentUser, isDevMode } = useFirebase();
+  const { currentUser } = useFirebase();
   const navigate = useNavigate();
+  const location = useLocation();
   
-  // Only show user as logged in if we're on the dashboard route
-  // This ensures the landing page always shows login/signup buttons
-  const isOnDashboard = window.location.pathname.includes('/dashboard') || 
-                        window.location.pathname === '/profile' ||
-                        window.location.pathname === '/settings' ||
-                        window.location.pathname === '/cv-manager' ||
-                        window.location.pathname === '/website' ||
-                        window.location.pathname === '/activity';
+  const isOnProtectedRoute = location.pathname.includes('/dashboard') || 
+                            location.pathname === '/profile' ||
+                            location.pathname === '/settings' ||
+                            location.pathname === '/cv-manager' ||
+                            location.pathname === '/website' ||
+                            location.pathname === '/activity';
 
-  const showAsLoggedIn = isOnDashboard && currentUser;
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Error logging out");
+    }
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!currentUser || !currentUser.displayName) return "U";
+    
+    const nameParts = currentUser.displayName.split(" ");
+    if (nameParts.length === 1) return nameParts[0].substring(0, 2).toUpperCase();
+    
+    return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+  };
 
   return (
     <header className="w-full py-4 px-6 border-b bg-white">
@@ -57,23 +76,32 @@ const AuthAwareNavbar: React.FC<NavbarProps> = ({
           <Link to="/about" className="text-gray-700 hover:text-academic-orange transition-colors">
             About
           </Link>
-          {/* {showAsLoggedIn && (
+          {currentUser && (
             <Link to="/dashboard" className="text-gray-700 hover:text-academic-orange transition-colors">
               Dashboard
             </Link>
-          )} */}
+          )}
         </nav>
 
         <div className="flex items-center gap-3">
           {showAuthButtons && (
-            showAsLoggedIn ? (
+            currentUser ? (
               <div className="flex items-center gap-2">
                 <Link to="/profile">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <UserIcon className="h-4 w-4" />
-                    Profile
-                  </Button>
+                  <Avatar className="h-8 w-8 cursor-pointer">
+                    <AvatarImage src={currentUser.photoURL || ""} alt={currentUser.displayName || "User"} />
+                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  </Avatar>
                 </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-2"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
               </div>
             ) : (
               <>
