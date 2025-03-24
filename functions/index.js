@@ -1,23 +1,31 @@
-const functions = require("firebase-functions");
+const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
-const fs = require("fs-extra");
 const path = require("path");
 const { Storage } = require("@google-cloud/storage");
+const fs = require("fs");
+const { exec } = require("child_process");
 
 admin.initializeApp();
 const db = admin.firestore();
 const storage = new Storage();
-const bucket = storage.bucket("testing-8d932.appspot.com");
+const bucket = storage.bucket("testing-vita-academica.firebasestorage.app");
 
-exports.deployWebsite = functions.https.onRequest(async (req, res) => {
-    console.log("🔥 Received Request:", req.method, req.body); // Debug log
+exports.deployWebsite = onRequest({ region: "europe-west1" }, async (req, res) => {
+    // Set CORS headers
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    // Handle preflight OPTIONS request
+    if (req.method === "OPTIONS") {
+        return res.status(204).send('');
+    }
 
     if (req.method !== "POST") {
         return res.status(400).json({ error: "Invalid request method. Use POST." });
     }
 
-    if (!req.body || !req.body.payload || !req.body.payload.userId || !req.body.payload.website) {
-        console.error("❌ Missing required data in request body", req.body);
+    if (!req.body?.payload?.userId || !req.body?.payload?.website) {
         return res.status(400).json({ error: "User ID and website content are required" });
     }
 
@@ -47,10 +55,8 @@ exports.deployWebsite = functions.https.onRequest(async (req, res) => {
             metadata: { contentType: "text/html" },
         });
 
-        console.log(`✅ Website uploaded for ${userId}`);
-
         // Generate the public URL for the website
-        const websiteUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/websites%2F${userId}%2Findex.html?alt=media`;
+        const websiteUrl = `testing-vita-academica.web.app/users/${userId}`
 
         res.json({ success: true, url: websiteUrl });
     } catch (error) {
@@ -59,67 +65,19 @@ exports.deployWebsite = functions.https.onRequest(async (req, res) => {
     }
 });
 
+exports.serveUserSite = onRequest({ region: "europe-west1" }, async (req, res) => {
+    const userId = req.path.split("/").pop();
+    const file = admin.storage().bucket().file(`websites/${userId}/index.html`);
 
-// exports.deployWebsite2 = functions.https.onRequest(async (req, res) => {
-//     if (req.method !== "POST") {
-//         return res.status(400).json({ error: "Invalid request method. Use POST." });
-//     }
+    try {
+        const [exists] = await file.exists();
+        if (!exists) return res.status(404).send("Website not found.");
 
-//     const { userId } = req.body;
-//     if (!userId) {
-//         return res.status(400).json({ error: "User ID is required" });
-//     }
-
-//     try {
-//         console.log(`🚀 Fetching website data for ${userId}...`);
-
-//         // Fetch user website data from Firestore
-//         const userRef = db.collection("websites").doc(userId);
-//         const userSnap = await userRef.get();
-
-//         if (!userSnap.exists) {
-//             return res.status(404).json({ error: "User data not found." });
-//         }
-
-//         const userData = userSnap.data();
-
-//         console.log(`✅ Generating website for ${userId}`);
-
-//         // Render React component as a static HTML string
-//         // const htmlContent = ReactDOMServer.renderToString(
-//         //     React.createElement(PublishedWebsite, { websiteData: userData })
-//         // );
-
-//         // Wrap content in an HTML document
-//         const fullHtml = `
-//         <html>
-//             <head><title>${userData.cvData?.name}'s Website</title></head>
-//             <body></body>
-//         </html>`;
-
-//         // Save HTML locally before uploading
-//         const outputPath = path.join("/tmp", `${userId}.html`); // Firebase Functions only allow /tmp folder
-//         fs.writeFileSync(outputPath, fullHtml);
-
-//         console.log(`✅ Website generated for ${userId}`);
-
-//         // Upload the HTML file to Firebase Storage
-//         await bucket.upload(outputPath, {
-//             destination: `websites/${userId}/index.html`,
-//             public: true, // Make it publicly accessible
-//             metadata: {
-//                 contentType: "text/html",
-//             },
-//         });
-
-//         console.log(`✅ Website uploaded for ${userId}`);
-
-//         // Return a Firebase Hosting-friendly URL
-//         const websiteUrl = `https://your-platform.web.app/sites/${userId}`;
-
-//         res.json({ success: true, url: websiteUrl });
-//     } catch (error) {
-//         console.error("❌ Error deploying website:", error);
-//         res.status(500).json({ error: "Failed to deploy" });
-//     }
-// });
+        const [contents] = await file.download();
+        res.set("Content-Type", "text/html");
+        res.send(contents);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading website.");
+    }
+});

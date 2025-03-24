@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "websites",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -8,8 +8,8 @@
     ],
     "rewrites": [
       {
-        "source": "/users/*",
-        "destination": "/redirect.html"
+        "source": "/users/**",
+        "function": "/websites/redirect.html"
       }
     ]
   },
@@ -34,7 +34,7 @@
       "port": 5005
     },
     "firestore": {
-      "port": 8080
+      "port": 3030
     },
     "storage": {
       "port": 9199

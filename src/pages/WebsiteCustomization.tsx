@@ -26,8 +26,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { db } from "@/lib/firebase/firebase";
 import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
-import PublishedWebsite from "./PublishedWebsite";
 import { renderToString } from "react-dom/server";
+import path from "path";
 
 // Mock CV data for preview purposes
 const mockCVData: ParsedCV = {
@@ -144,7 +144,7 @@ const WebsiteCustomization = () => {
 
     try {
 
-      const firebaseCSSURL = "http://localhost:9199/v0/b/testing-8d932.appspot.com/o/websites%2Fstyles.css?alt=media";
+      const firebaseCSSURL = `https://firebasestorage.googleapis.com/v0/b/testing-vita-academica.firebasestorage.app/o/websites%2Fstyle.css?alt=media`;
 
       const websiteHTML = `
         <!DOCTYPE html>
@@ -165,7 +165,7 @@ const WebsiteCustomization = () => {
       )}
         </body>
         </html>
-        `;
+      `;
 
       const payload = {
         userId: domain,
@@ -178,11 +178,12 @@ const WebsiteCustomization = () => {
         },
       };
 
-      const response = await fetch("http://127.0.0.1:5005/testing-8d932/us-central1/deployWebsite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payload }),
-      });
+      const response = await fetch("https://deploywebsite-bjkal4iq7a-ew.a.run.app", // http://127.0.0.1:5005/testing-8d932/us-central1/deployWebsite" Emulator
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ payload }),
+        });
 
       const result = await response.json();
       if (result.success) {
