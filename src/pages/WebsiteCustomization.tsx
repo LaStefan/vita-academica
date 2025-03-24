@@ -144,7 +144,7 @@ const WebsiteCustomization = () => {
 
     try {
 
-      const firebaseCSSURL = `https://firebasestorage.googleapis.com/v0/b/testing-vita-academica.firebasestorage.app/o/websites%2Fstyle.css?alt=media`;
+      const firebaseCSSURL = `https://firebasestorage.googleapis.com/v0/b/testing-vita-academica.firebasestorage.app/o/websites%2Fstyles.css?alt=media`;
 
       const websiteHTML = `
         <!DOCTYPE html>

@@ -11,9 +11,13 @@
  * @important When deploying to production, replace these values with actual Firebase project configuration.
  */
 
+require("dotenv").config();
+const apiKey = process.env.API_KEY;
+const authDomain = process.env.AUTH_DOMAIN;
+
 export const firebaseConfig = {
-  apiKey: "AIzaSyB1weLDpe68xkfWoDcUjmfn64-BS_3K0U8",
-  authDomain: "testing-vita-academica.firebaseapp.com",
+  apiKey: apiKey,
+  authDomain: authDomain,
   projectId: "testing-vita-academica",
   storageBucket: "testing-vita-academica.firebasestorage.app",
   messagingSenderId: "914013505462",
