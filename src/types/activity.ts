@@ -1,4 +1,5 @@
 
+import { Timestamp } from 'firebase/firestore';
 import { ReactNode } from 'react';
 
 export interface ActivityItem {
@@ -8,4 +9,6 @@ export interface ActivityItem {
   description: string;
   date: string;
   icon?: ReactNode;
+  timestamp?: Timestamp; 
+  filePath?: string; // Path to the file in Firebase Storage
 }

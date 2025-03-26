@@ -51,6 +51,18 @@ export const uploadProfileImage = async (
   userId: string, 
   file: File
 ): Promise<{ url: string; path: string }> => {
+  // Validate file type
+  const validImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+  if (!validImageTypes.includes(file.type)) {
+    throw new Error('Invalid file type. Please upload a JPEG or PNG image.');
+  }
+  
+  // Limit file size to 5MB
+  const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSizeInBytes) {
+    throw new Error('File too large. Maximum size is 5MB.');
+  }
+  
   return uploadFile(userId, file, 'profile');
 };
 
