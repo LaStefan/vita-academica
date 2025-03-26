@@ -8,17 +8,13 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  where, 
   orderBy, 
   serverTimestamp, 
   DocumentData,
-  QuerySnapshot,
-  DocumentReference
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { ParsedCV } from '@/services/documentParser';
 import { ActivityItem } from '@/types/activity';
-import { User } from 'firebase/auth';
+import { ParsedCV } from '@/types/parsed-cv';
 
 // User profiles collection
 export const userProfilesCollection = collection(db, 'userProfiles');
@@ -151,7 +147,7 @@ export const getWebsiteSettings = async (userId: string): Promise<DocumentData |
 // Log user activity
 export const logActivity = async (
   userId: string, 
-  activity: Omit<ActivityItem, 'id' | 'date'>
+  activity: Omit<ActivityItem, 'id' | 'date'> & { filePath?: string }
 ): Promise<string> => {
   try {
     const userActivitiesCollection = collection(db, 'users', userId, 'activities');
@@ -184,7 +180,8 @@ export const getUserActivities = async (userId: string): Promise<ActivityItem[]>
         title: data.title,
         description: data.description,
         date: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : '',
-        icon: null // Icons will be added in the UI component
+        icon: null, // Icons will be added in the UI component
+        ...(data.filePath && { filePath: data.filePath })
       };
     });
   } catch (error) {

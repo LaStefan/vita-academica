@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { FaGithub } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -36,9 +37,10 @@ import { useFirebase } from '@/lib/firebase/FirebaseContext';
 import { updatePassword, updateUserProfile } from '@/lib/firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/firebase';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Loader2, Camera } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { uploadProfileImage } from '@/lib/firebase/storage';
 
-// Schema for account information
 const accountFormSchema = z.object({
   fullName: z
     .string()
@@ -51,7 +53,6 @@ const accountFormSchema = z.object({
   institution: z.string().optional(),
 });
 
-// Schema for password change
 const passwordFormSchema = z
   .object({
     currentPassword: z
@@ -77,8 +78,10 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize the form with user data
   const accountForm = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
     defaultValues: {
@@ -98,7 +101,6 @@ const Settings = () => {
     },
   });
 
-  // Fetch user data from Firestore
   useEffect(() => {
     const fetchUserData = async () => {
       if (!currentUser) return;
@@ -111,8 +113,8 @@ const Settings = () => {
         if (userDoc.exists()) {
           const data = userDoc.data();
           setUserData(data);
+          setPhotoURL(currentUser.photoURL || data.photoURL || null);
 
-          // Update form with user data
           accountForm.reset({
             fullName: currentUser.displayName || '',
             email: currentUser.email || '',
@@ -131,13 +133,11 @@ const Settings = () => {
     fetchUserData();
   }, [currentUser, accountForm]);
 
-  // Handle account information update
   const handleAccountUpdate = async (values: AccountFormValues) => {
     if (!currentUser) return;
 
     setLoading(true);
     try {
-      // Update user profile using the auth utility
       await updateUserProfile(currentUser, {
         displayName: values.fullName,
         academicTitle: values.academicTitle,
@@ -153,26 +153,21 @@ const Settings = () => {
     }
   };
 
-  // Handle password change
   const handlePasswordChange = async (values: PasswordFormValues) => {
     if (!currentUser) return;
 
     setLoading(true);
     try {
-      // Update password using the auth utility
       await updatePassword(
         currentUser,
         values.currentPassword,
         values.newPassword
       );
-
-      // Reset form fields
       passwordForm.reset({
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
       });
-
       toast.success('Password updated successfully');
     } catch (error: any) {
       console.error('Error updating password:', error);
@@ -187,6 +182,34 @@ const Settings = () => {
 
   const handleSaveChanges = () => {
     toast.success('Settings saved successfully');
+  };
+
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    setUploadingPhoto(true);
+    try {
+      const result = await uploadProfileImage(currentUser.uid, file);
+
+      await updateUserProfile(currentUser, {
+        photoURL: result.url,
+      });
+
+      setPhotoURL(result.url);
+      toast.success('Profile photo updated successfully');
+    } catch (error: any) {
+      console.error('Error uploading profile photo:', error);
+      toast.error(error.message || 'Failed to upload profile photo');
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   if (loadingUserData) {
@@ -236,6 +259,46 @@ const Settings = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
+                    <div className='flex items-center mb-6'>
+                      <div className='relative mr-6'>
+                        <Avatar
+                          className='h-24 w-24 cursor-pointer'
+                          onClick={handlePhotoClick}>
+                          <AvatarImage
+                            src={photoURL || undefined}
+                            alt='Profile'
+                          />
+                          <AvatarFallback className='text-lg'>
+                            {currentUser?.displayName?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div
+                          className='absolute bottom-0 right-0 bg-primary text-white p-1 rounded-full cursor-pointer'
+                          onClick={handlePhotoClick}>
+                          <Camera className='h-4 w-4' />
+                        </div>
+                        <input
+                          type='file'
+                          ref={fileInputRef}
+                          className='hidden'
+                          accept='image/jpeg,image/png,image/jpg'
+                          onChange={handlePhotoUpload}
+                        />
+                      </div>
+                      <div>
+                        <h3 className='font-medium'>Profile Photo</h3>
+                        <p className='text-sm text-gray-500'>
+                          Upload a photo of yourself (JPEG, JPG or PNG)
+                        </p>
+                        {uploadingPhoto && (
+                          <div className='flex items-center mt-2 text-yellow-600'>
+                            <Loader2 className='h-3 w-3 animate-spin mr-1' />
+                            <span className='text-xs'>Uploading...</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     <Form {...accountForm}>
                       <form
                         onSubmit={accountForm.handleSubmit(handleAccountUpdate)}
@@ -577,11 +640,11 @@ const Settings = () => {
                         </div>
                         <div>
                           <h4 className='font-medium'>ORCID</h4>
-                          <p className='text-sm text-gray-500'>Connected</p>
+                          <p className='text-sm text-gray-500'>Not connected</p>
                         </div>
                       </div>
                       <Button variant='outline' size='sm'>
-                        Disconnect
+                        Connect
                       </Button>
                     </div>
 
@@ -618,11 +681,11 @@ const Settings = () => {
                         </div>
                         <div>
                           <h4 className='font-medium'>LinkedIn</h4>
-                          <p className='text-sm text-gray-500'>Connected</p>
+                          <p className='text-sm text-gray-500'>Not connected</p>
                         </div>
                       </div>
                       <Button variant='outline' size='sm'>
-                        Disconnect
+                        Connect
                       </Button>
                     </div>
 
@@ -663,47 +726,10 @@ const Settings = () => {
                     <div className='flex items-center justify-between'>
                       <div className='flex items-center gap-3'>
                         <div className='bg-gray-100 p-2 rounded-full'>
-                          <svg
-                            className='h-6 w-6 text-gray-500'
-                            viewBox='0 0 24 24'
-                            fill='none'
-                            xmlns='http://www.w3.org/2000/svg'>
-                            <path
-                              d='M21 7V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7Z'
-                              stroke='currentColor'
-                              strokeWidth='2'
-                              strokeMiterlimit='10'
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                            />
-                            <path
-                              d='M14.5 4.5V6.5C14.5 7.6 15.4 8.5 16.5 8.5H18.5'
-                              stroke='currentColor'
-                              strokeWidth='2'
-                              strokeMiterlimit='10'
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                            />
-                            <path
-                              d='M8 13H12'
-                              stroke='currentColor'
-                              strokeWidth='2'
-                              strokeMiterlimit='10'
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                            />
-                            <path
-                              d='M8 17H16'
-                              stroke='currentColor'
-                              strokeWidth='2'
-                              strokeMiterlimit='10'
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                            />
-                          </svg>
+                          <FaGithub />
                         </div>
                         <div>
-                          <h4 className='font-medium'>Pure</h4>
+                          <h4 className='font-medium'>GitHub</h4>
                           <p className='text-sm text-gray-500'>Not connected</p>
                         </div>
                       </div>
@@ -712,8 +738,6 @@ const Settings = () => {
                       </Button>
                     </div>
                   </div>
-
-                  <Button onClick={handleSaveChanges}>Save Changes</Button>
                 </CardContent>
               </Card>
             </TabsContent>
