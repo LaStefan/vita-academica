@@ -32,11 +32,11 @@ import path from "path";
 // Mock CV data for preview purposes
 const mockCVData: ParsedCV = {
   personalInfo: {
-    name: "Dr. Jane Smith",
+    name: "Dr. John Johnson",
     title: "Professor of Computer Science",
-    email: "janesmith@university.edu",
-    phone: "+1 (555) 123-4567",
-    location: "New York, NY"
+    email: "johnjohnson@university.edu",
+    phone: "+31 123 456 789",
+    location: "Utrecht, UT, Netherlands",
   },
   education: [
     {
@@ -59,7 +59,7 @@ const mockCVData: ParsedCV = {
   experience: [
     {
       title: "Associate Professor",
-      company: "Columbia University",
+      company: "Utrecht University",
       period: "2018 - Present",
       description: "Teaching graduate-level courses in AI and ML. Leading research in NLP applications."
     },
@@ -73,14 +73,14 @@ const mockCVData: ParsedCV = {
   publications: [
     {
       title: "Advances in Self-Supervised Learning for Academic Research",
-      authors: "Smith, J., Johnson, R., Williams, E.",
+      authors: "Johnson, J., Johnson, R., Williams, E.",
       venue: "Journal of Artificial Intelligence",
       year: "2023",
       link: "https://example.com/paper1"
     },
     {
       title: "Transformer Models in Academic Publishing",
-      authors: "Smith, J., Brown, A.",
+      authors: "Johnson, J., Brown, A.",
       venue: "Conference on Machine Learning",
       year: "2022"
     }
@@ -100,7 +100,7 @@ const WebsiteCustomization = () => {
     teaching: false
   });
 
-  const [domain, setDomain] = useState("janesmith");
+  const [domain, setDomain] = useState("johnjohnson");
   const [theme, setTheme] = useState("light");
   const [cvData, setCvData] = useState<ParsedCV | null>(null);
   const [showFullPreview, setShowFullPreview] = useState(false);
@@ -252,13 +252,13 @@ const WebsiteCustomization = () => {
                       </div>
 
                       <div
-                        className={`border-2 rounded-md p-2 text-center cursor-pointer ${selectedTemplate === 'portfolio' ? 'border-academic-orange' : 'border-gray-200'}`}
-                        onClick={() => setSelectedTemplate('portfolio')}
+                        className={`border-2 rounded-md p-2 text-center cursor-pointer ${selectedTemplate === 'uu' ? 'border-academic-orange' : 'border-gray-200'}`}
+                        onClick={() => setSelectedTemplate('uu')}
                       >
                         <div className="bg-gray-100 h-24 mb-2 rounded flex items-center justify-center">
                           <LayoutTemplate className="h-10 w-10 text-gray-400" />
                         </div>
-                        <span className="text-sm font-medium">Portfolio</span>
+                        <span className="text-sm font-medium">UU</span>
                       </div>
                     </div>
 

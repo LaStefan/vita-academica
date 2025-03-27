@@ -7,9 +7,9 @@ import * as fs from "fs";
 admin.initializeApp();
 
 const storage = new Storage();
-const bucket = storage.bucket("testing-vita-academica.firebasestorage.app");
+const bucket = storage.bucket("testing-vita-academica.firebasestorage.app"); // Change to the appropriate bucket
 
-const token = "1//09FteSpjMvmmZCgYIARAAGAkSNwF-L9IrD-m-6bwtYI_GGKTJb3oO7V1On5QKfQnxhSVYrITsjjA83Akpowq_IZmBGzuuWSdlg7E";
+const token = "1//09FteSpjMvmmZCgYIARAAGAkSNwF-L9IrD-m-6bwtYI_GGKTJb3oO7V1On5QKfQnxhSVYrITsjjA83Akpowq_IZmBGzuuWSdlg7E"; // Change to the appropriate Firebase token
 
 export const deployWebsite = onRequest({ region: "europe-west1" }, async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
