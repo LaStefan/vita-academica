@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useFirebase } from '@/lib/firebase/FirebaseContext';
+import { FaEuroSign } from 'react-icons/fa';
 
 const Pricing = () => {
   const { currentUser } = useFirebase();
@@ -20,13 +21,12 @@ const Pricing = () => {
   return (
     <div className='min-h-screen flex flex-col'>
       <Navbar />
-
       <main className='flex-grow'>
         <section className='py-12 md:py-20 bg-gradient-to-b from-academic-light to-white'>
           <div className='container mx-auto px-4'>
             <div className='text-center max-w-3xl mx-auto mb-12'>
               <h1 className='text-4xl md:text-5xl font-bold text-academic-dark mb-4'>
-                Simple, Transparent Pricing
+                Pricing
               </h1>
               <p className='text-lg text-gray-600'>
                 Choose the plan that's right for you or your institution
@@ -46,8 +46,9 @@ const Pricing = () => {
                       </p>
                     </div>
                     <div className='text-right'>
-                      <div className='align'>
-                        <span className='text-3xl font-bold'>$4.99</span>
+                      <div className='flex items-center'>
+                        <Euro></Euro>
+                        <span className='text-3xl font-bold'>4.99</span>
                       </div>
                       <span className='text-gray-500'>/month</span>
                     </div>
@@ -74,7 +75,7 @@ const Pricing = () => {
                     </li>
                     <li className='flex items-start'>
                       <CheckCircle2 className='h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0' />
-                      <span>Custom domain (yourname.vitaacademica.com)</span>
+                      <span>Custom domain (yourname.vita-academica.com)</span>
                     </li>
                   </ul>
                   {!!currentUser ? (
@@ -93,10 +94,9 @@ const Pricing = () => {
                 </div>
               </div>
 
-              {/* Institution Plan */}
               <div className='bg-white rounded-lg shadow-lg overflow-hidden border border-academic-light transition-transform hover:shadow-xl hover:-translate-y-1'>
                 <div className='p-6 border-b border-gray-100 bg-academic-light/20'>
-                  <div className='flex items-center justify-between'>
+                  <div className='flex items-center justify-betwee'>
                     <div>
                       <h3 className='text-xl font-bold mb-1'>Institution</h3>
                       <p className='text-gray-500 flex items-center'>
@@ -105,7 +105,9 @@ const Pricing = () => {
                       </p>
                     </div>
                     <div className='text-right'>
-                      <span className='text-xl font-bold'>Custom Pricing</span>
+                      <span className='text-xl font-bold ml-1'>
+                        Custom Pricing
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -143,44 +145,6 @@ const Pricing = () => {
                     variant='outline'>
                     <Mail className='h-4 w-4 mr-2' /> Contact Sales
                   </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className='mt-16 max-w-3xl mx-auto text-center'>
-              <h2 className='text-2xl font-bold mb-6'>
-                Frequently Asked Questions
-              </h2>
-
-              <div className='space-y-8 text-left'>
-                <div>
-                  <h3 className='text-lg font-semibold mb-2'>
-                    Do you offer discounts for multiple licenses?
-                  </h3>
-                  <p className='text-gray-600'>
-                    Yes, we offer volume discounts for institutional licenses.
-                    Contact our sales team for custom pricing.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className='text-lg font-semibold mb-2'>
-                    Can I upgrade from Individual to Institution plan?
-                  </h3>
-                  <p className='text-gray-600'>
-                    Absolutely! You can upgrade at any time and we'll prorate
-                    the remaining balance of your subscription.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className='text-lg font-semibold mb-2'>
-                    Is there a free trial?
-                  </h3>
-                  <p className='text-gray-600'>
-                    We offer a 14-day free trial for all new accounts. No credit
-                    card required to start.
-                  </p>
                 </div>
               </div>
             </div>

@@ -17,10 +17,11 @@ const Index = () => {
       <Navbar />
       <main className="flex-grow">
         <HeroSection />
-        <TrustedBySection />
         <FeaturesSection />
         <HowItWorksSection />
+        <div className="bg-academic-light">
         <TemplatesSection />
+        </div>
         <WhyChooseSection />
         <TestimonialsSection />
         <CtaSection />
