@@ -1,41 +1,48 @@
-const { onRequest } = require("firebase-functions/v2/https");
-const admin = require("firebase-admin");
-const path = require("path");
-const { Storage } = require("@google-cloud/storage");
-const fs = require("fs");
+import { onRequest } from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
+import * as path from "path";
+import { Storage } from "@google-cloud/storage";
+import * as fs from "fs";
 
 admin.initializeApp();
+
 const storage = new Storage();
 const bucket = storage.bucket("testing-vita-academica.firebasestorage.app");
 
-require("dotenv").config();
-const token = process.env.DEPLOY_FIREBASE_AUTH_TOKEN;
+const token = "1//09FteSpjMvmmZCgYIARAAGAkSNwF-L9IrD-m-6bwtYI_GGKTJb3oO7V1On5QKfQnxhSVYrITsjjA83Akpowq_IZmBGzuuWSdlg7E";
 
-exports.deployWebsite = onRequest({ region: "europe-west1" }, async (req, res) => {
+export const deployWebsite = onRequest({ region: "europe-west1" }, async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
     res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.set("Access-Control-Allow-Headers", "Content-Type");
 
-    if (req.method === "OPTIONS") return res.status(204).send('');
-    if (req.method !== "POST") return res.status(400).json({ error: "Use POST" });
+    if (req.method === "OPTIONS") {
+        res.status(204).send('');
+        return;
+    }
 
-    const firebaseTools = require("firebase-tools");
+    if (req.method !== "POST") {
+        res.status(400).json({ error: "Use POST" });
+        return;
+    }
 
-    const { userId, website } = req.body.payload || {};
+    const firebaseTools = await import("firebase-tools"); // Very large, so only import when needed
+
+    const { userId, website }: { userId?: string; website?: string } = req.body.payload || {};
 
     if (!userId || !website) {
-        return res.status(400).json({ error: "User ID and website content are required" });
+        res.status(400).json({ error: "User ID and website content are required" });
+        return;
     }
 
     try {
         const tempDir = path.join("/tmp", userId);
         const indexPath = path.join(tempDir, "index.html");
 
-
         fs.mkdirSync(tempDir, { recursive: true });
         fs.writeFileSync(indexPath, website, "utf-8");
 
-        // Optional: Upload to storage
+        // Upload to Cloud Storage
         await bucket.upload(indexPath, {
             destination: `websites/${userId}/index.html`,
             public: true,
@@ -44,40 +51,41 @@ exports.deployWebsite = onRequest({ region: "europe-west1" }, async (req, res) =
 
         console.log(`✅ Uploaded to Storage`);
 
-        // 🔥 Create hosting site programmatically (if not already created)
+        // Try to create hosting site if it doesn't exist
         try {
             await firebaseTools.hosting.sites.create(userId, {
                 project: "testing-vita-academica",
-                token: token,
+                token,
             });
             console.log(`✅ Hosting site created: ${userId}`);
         } catch (e) {
-            if (e.message.includes("already exists")) {
+            if (e instanceof Error && e.message?.includes("already exists")) {
                 console.log(`Site ${userId} already exists, continuing...`);
             } else {
                 throw e;
             }
         }
 
+        // Write firebase.json config for this site
         const firebaseJsonPath = path.join(tempDir, "firebase.json");
         const firebaseConfig = {
             hosting: {
                 public: "./",
-                site: userId
-            }
+                site: userId,
+            },
         };
         fs.writeFileSync(firebaseJsonPath, JSON.stringify(firebaseConfig, null, 2));
 
-        // 🚀 Deploy to Firebase Hosting (multi-site hosting)
+        // Deploy to Firebase Hosting
         await firebaseTools.deploy({
             project: "testing-vita-academica",
             cwd: tempDir,
             only: "hosting",
-            token: token
+            token,
         });
 
         console.log(`✅ Deployed to Firebase Hosting`);
-        const websiteUrl = `https://${userId}.web.app`; // Firebase auto-generates this domain
+        const websiteUrl = `https://${userId}.web.app`;
 
         res.json({ success: true, url: websiteUrl });
     } catch (error) {
@@ -85,4 +93,3 @@ exports.deployWebsite = onRequest({ region: "europe-west1" }, async (req, res) =
         res.status(500).json({ error: "Failed to deploy" });
     }
 });
-

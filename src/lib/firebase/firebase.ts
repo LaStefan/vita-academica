@@ -6,6 +6,9 @@ import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { firebaseConfig } from './config';
 
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
@@ -23,10 +26,9 @@ export const storage = getStorage(app);
 
 // Connect to emulators if in development environment
 if (import.meta.env.DEV) {
-  // Uncomment these lines to connect to Firebase emulators during development
-  // connectAuthEmulator(auth, 'http://localhost:9099');
-  // connectFirestoreEmulator(db, 'localhost', 8080);
-  // connectFunctionsEmulator(functions, 'localhost', 5005);
-  // connectStorageEmulator(storage, 'localhost', 9199);
-  console.log('Using Firebase services');
+  connectAuthEmulator(auth, 'http://localhost:9099');
+  connectFirestoreEmulator(db, 'localhost', 8085); // Corrected to match firebase.json
+  connectStorageEmulator(storage, 'localhost', 9199);
+
+  console.log('Using Firebase services in emulation mode');
 }

@@ -50,55 +50,19 @@ cd vita-academica
 npm install
 ```
 
-<!-- ### 3️⃣ Set Up Environment Variables -->
-
-<!-- ```bash
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
-``` -->
-
-<!-- ### 4️⃣ Run the Development Server -->
-
 ### 3️⃣ Run the Development Server
 
 ```bash
 npm run dev
 ```
 
-App will be available at: http://localhost:8080 or check your terminal
+App will be available at: http://localhost:3000 or check your terminal
 
-## 📦 Deployment
+## 📦 Testing
 
-### Frontend (Next.js) - Vercel
-
-1. Push code to GitHub
-2. Connect the GitHub repository to **Vercel**
-3. Deploy via **Vercel Dashboard**
-
-### Backend (Firebase Functions & Firestore)
-
-1. Install Firebase CLI
-
-```bash
-npm install -g firebase-tools
-```
-
-2. Login to Firebase
-
-```bash
-firebase login
-```
-
-3. Deploy Backend
-
-```bash
-firebase deploy
-```
+Test user:
+Email: test@gmail.com
+Password: test2025
 
 ## 🤝 Contributing
 
@@ -141,4 +105,4 @@ This project is licensed under the MIT License.
 📧 Email: support@vitaacademica.com  
 🌍 Website: [www.vitaacademica.com](http://www.vitaacademica.com)  
 🐦 Twitter: [@VitaAcademica](https://twitter.com/VitaAcademica)  
-📘 LinkedIn: Vita Academica  
+📘 LinkedIn: Vita Academica

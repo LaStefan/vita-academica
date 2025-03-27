@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   GraduationCap, 
   LayoutDashboard,
@@ -14,6 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useFirebase } from "@/lib/firebase/FirebaseContext";
+import { signOutUser } from "@/lib/firebase/auth";
+import { toast } from "sonner";
 
 const SidebarItem = ({ 
   icon: Icon, 
@@ -42,6 +44,28 @@ const SidebarItem = ({
 
 const DashboardSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser } = useFirebase();
+  
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Error logging out");
+    }
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!currentUser || !currentUser.displayName) return "U";
+    
+    const nameParts = currentUser.displayName.split(" ");
+    if (nameParts.length === 1) return nameParts[0].substring(0, 2).toUpperCase();
+    
+    return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+  };
   
   return (
     <div className="hidden md:flex flex-col w-64 border-r bg-white h-screen sticky top-0">
@@ -57,12 +81,12 @@ const DashboardSidebar = () => {
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src="" />
-            <AvatarFallback>JS</AvatarFallback>
+            <AvatarImage src={currentUser?.photoURL || ""} alt={currentUser?.displayName || "User"} />
+            <AvatarFallback>{getUserInitials()}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium">Dr. Jane Smith</p>
-            <p className="text-sm text-gray-600">Associate Professor</p>
+            <p className="font-medium">{currentUser?.displayName || "User"}</p>
+            <p className="text-sm text-gray-600">Academic Professional</p>
           </div>
         </div>
       </div>
@@ -107,7 +131,11 @@ const DashboardSidebar = () => {
       </nav>
       
       <div className="p-4 border-t mt-auto">
-        <Button variant="outline" className="w-full justify-start gap-3">
+        <Button 
+          variant="outline" 
+          className="w-full justify-start gap-3"
+          onClick={handleLogout}
+        >
           <LogOut className="h-5 w-5" />
           <span>Logout</span>
         </Button>

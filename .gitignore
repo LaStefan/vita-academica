@@ -1,7 +1,6 @@
 # Node.js dependencies
 node_modules/
 bun.lockb
-package-lock.json
 pnpm-lock.yaml
 yarn.lock
 
@@ -59,3 +58,9 @@ firebase-debug.log
 firebase-debug.*
 .firestore/
 .functions/cache/
+.firebase/
+firestore-debug.log
+pubsub-debug.log
+database-debug.log
+ui-debug.log
+*.log

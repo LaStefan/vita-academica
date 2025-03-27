@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,7 +17,7 @@ import Templates from "./pages/Templates";
 import ActivityHistory from "./pages/ActivityHistory";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
-import PublishedWebsite from "./pages/PublishedWebsite";
+import AuthProtectedRoute from "./components/AuthProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -30,20 +29,47 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/cv-manager" element={<CVManager />} />
-            <Route path="/website" element={<WebsiteCustomization />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/about" element={<About />} />
             <Route path="/templates" element={<Templates />} />
-            <Route path="/activity" element={<ActivityHistory />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/:domain" element={<PublishedWebsite />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+            {/* Protected routes */}
+            <Route path="/dashboard" element={
+              <AuthProtectedRoute>
+                <Dashboard />
+              </AuthProtectedRoute>
+            } />
+            <Route path="/cv-manager" element={
+              <AuthProtectedRoute>
+                <CVManager />
+              </AuthProtectedRoute>
+            } />
+            <Route path="/website" element={
+              <AuthProtectedRoute>
+                <WebsiteCustomization />
+              </AuthProtectedRoute>
+            } />
+            <Route path="/activity" element={
+              <AuthProtectedRoute>
+                <ActivityHistory />
+              </AuthProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <AuthProtectedRoute>
+                <Profile />
+              </AuthProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <AuthProtectedRoute>
+                <Settings />
+              </AuthProtectedRoute>
+            } />
+
+            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
