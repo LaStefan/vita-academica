@@ -15,7 +15,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className='text-gray-400 text-sm'>
-              Your academic journey, in one place
+              Your academic journey, in one place.
             </p>
           </div>
 
