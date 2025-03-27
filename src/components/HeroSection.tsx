@@ -7,7 +7,7 @@ const HeroSection = () => {
   return (
     <section className="relative overflow-hidden">
       {/* Gradient background - changed to bottom-to-top direction */}
-      <div className="absolute inset-0 bg-gradient-to-t from-orange-50 via-academic-light to-white z-0"></div>
+      <div className="absolute inset-0 bg-whitefrom-orange-50 via-academic-light to-white z-0"></div>
       
       <div className="container mx-auto py-16 px-4 md:py-20 lg:py-24 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">

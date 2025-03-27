@@ -22,7 +22,7 @@ const Pricing = () => {
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h1 className="text-4xl md:text-5xl font-bold text-academic-dark mb-4">
-                Simple, Transparent Pricing
+           Pricing
               </h1>
               <p className="text-lg text-gray-600">
                 Choose the plan that's right for you or your institution
@@ -130,6 +130,7 @@ const Pricing = () => {
               </div>
             </div>
             
+            {/* 
             <div className="mt-16 max-w-3xl mx-auto text-center">
               <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
               
@@ -150,8 +151,10 @@ const Pricing = () => {
                 </div>
               </div>
             </div>
+            */}
           </div>
         </section>
+        
       </main>
       
       <Footer />

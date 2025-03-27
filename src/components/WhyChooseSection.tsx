@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Book, Award, Users } from "lucide-react";
+import { Book, Globe, ChartBarIncreasing, NotebookTabs } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const WhyChooseSection = () => {
@@ -18,8 +18,22 @@ const WhyChooseSection = () => {
             <p className="text-gray-600 text-lg mb-8">
               Our platform is specifically designed for academics, researchers, and educators.
             </p>
-            
+
             <div className="space-y-6">
+
+            <Separator />
+            <div className="flex gap-4">
+                <div className="text-academic-orange">
+                  <NotebookTabs className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Easily Organize Your Achievements</h3>
+                  <p className="text-gray-600">
+                  Quickly arrange your education, publications, and research contributions with a user-friendly navigation
+                  </p>
+                </div>
+              </div>
+              <Separator />
               <div className="flex gap-4">
                 <div className="text-academic-orange">
                   <Book className="h-6 w-6" />
@@ -36,29 +50,16 @@ const WhyChooseSection = () => {
               
               <div className="flex gap-4">
                 <div className="text-academic-orange">
-                  <Award className="h-6 w-6" />
+                  <Globe className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-2">Showcase Publications</h3>
+                  <h3 className="text-xl font-bold mb-2"> Easily Create Your Website                  </h3>
                   <p className="text-gray-600">
-                    Highlight your research papers, books, and academic achievements
-                  </p>
+                  Effortlessly build a professional portfolio to showcase your research, publications, and academic achievements.                  </p>
                 </div>
               </div>
               
-              <Separator />
               
-              <div className="flex gap-4">
-                <div className="text-academic-orange">
-                  <Users className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Increase Visibility</h3>
-                  <p className="text-gray-600">
-                    Get discovered by peers, students, and research collaborators
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
           

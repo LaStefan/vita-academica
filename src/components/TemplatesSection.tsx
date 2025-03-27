@@ -2,7 +2,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
 type TemplateCardProps = {
   image: string;
   title: string;
@@ -34,8 +33,8 @@ const TemplateCard = ({ image, title, description }: TemplateCardProps) => {
 
 const TemplatesSection = () => {
   return (
-    <section className="py-16 px-4 bg-academic-light">
-      <div className="container mx-auto">
+    <section className="py-16 px-4 ">
+      <div className="container mx-auto ">
         <div className="text-center mb-12">
           <span className="inline-block bg-orange-100 text-academic-orange px-4 py-2 rounded-full text-sm font-medium mb-4">
             Templates
@@ -48,18 +47,20 @@ const TemplatesSection = () => {
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <TemplateCard
-              image="https://images.unsplash.com/photo-1586473219010-2ffc57b0d282?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-              title="Classic Academic"
-              description="Traditional layout with modern touches, perfect for professors and researchers"
+            
+          <TemplateCard
+            image="src/assets/classic_template.png"  // Pass the image path as a prop
+            title="Classic Academic"
+            description="Traditional layout with modern touches, perfect for professors and researchers"
             />
+
             <TemplateCard
               image="https://images.unsplash.com/photo-1594980596870-8aa52a78d8cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
               title="Research Focus"
               description="Highlight your research and publications with this specialized layout"
             />
             <TemplateCard
-              image="https://images.unsplash.com/photo-1626698035997-5a37c29eeb6b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+              image= "src/assets/website_template.png"
               title="Digital Portfolio"
               description="Modern web presence for academics with visual emphasis and clean design"
             />
