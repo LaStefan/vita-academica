@@ -42,47 +42,7 @@ const About = () => {
           </div>
         </section>
         
-        {/* 
-        {/* Values Section 
-        <section className="py-16 bg-academic-light/30">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Our Values</h2>
-            
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              <div className="bg-white p-6 rounded-lg shadow-md text-center">
-                <div className="flex justify-center mb-4">
-                  <BookOpen className="h-12 w-12 text-academic-orange" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Knowledge Sharing</h3>
-                <p className="text-gray-600">
-                  We believe in making academic achievements accessible and discoverable to foster collaboration and advance human knowledge.
-                </p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-md text-center">
-                <div className="flex justify-center mb-4">
-                  <Users className="h-12 w-12 text-academic-orange" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Community</h3>
-                <p className="text-gray-600">
-                  We're building tools that strengthen the academic community by connecting researchers and their work across institutions and disciplines.
-                </p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-md text-center">
-                <div className="flex justify-center mb-4">
-                  <Globe className="h-12 w-12 text-academic-orange" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Accessibility</h3>
-                <p className="text-gray-600">
-                  We're committed to making professional tools accessible to academics at all career stages and from diverse backgrounds.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-        */}
+        
 
         {/* Team Section */}
         <section className="py-16 bg-academic-light">
@@ -94,7 +54,7 @@ const About = () => {
 
               <div className="text-center">
               <img 
-                src={"src/assets/stefan.png"} 
+                src={"public/assets/Stefan.png"} 
                 alt="Stefan Lazarević" 
                 className="w-32 h-32 mx-auto rounded-full object-cover mb-4"
               />
@@ -105,7 +65,7 @@ const About = () => {
 
             <div className="text-center">
               <img 
-                src={"src/assets/jandre.png"} 
+                src={"public/assets/jandre.png"} 
                 alt="Jandre Kostić" 
                 className="w-32 h-32 mx-auto rounded-full object-cover mb-4"
               />
@@ -115,7 +75,7 @@ const About = () => {
 
             <div className="text-center">
               <img 
-                src={"src/assets/youssef.png"} 
+                src={"public/assets/youssef.png"} 
                 alt="Youssef Ben Mansour" 
                 className="w-32 h-32 mx-auto rounded-full object-cover mb-4"
               />
@@ -125,7 +85,7 @@ const About = () => {
 
             <div className="text-center">
               <img 
-                src={"src/assets/pablo.png"} 
+                src={"public/assets/pablo.png"} 
                 alt="Pablo Arteaga Bravo" 
                 className="w-32 h-32 mx-auto rounded-full object-cover mb-4"
               />

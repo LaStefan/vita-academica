@@ -128,35 +128,10 @@ const Pricing = () => {
                   </Button>
                 </div>
               </div>
-            </div>
-            
-            {/* 
-            <div className="mt-16 max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
-              
-              <div className="space-y-8 text-left">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Do you offer discounts for multiple licenses?</h3>
-                  <p className="text-gray-600">Yes, we offer volume discounts for institutional licenses. Contact our sales team for custom pricing.</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Can I upgrade from Individual to Institution plan?</h3>
-                  <p className="text-gray-600">Absolutely! You can upgrade at any time and we'll prorate the remaining balance of your subscription.</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Is there a free trial?</h3>
-                  <p className="text-gray-600">We offer a 14-day free trial for all new accounts. No credit card required to start.</p>
-                </div>
-              </div>
-            </div>
-            */}
+            </div>        
           </div>
-        </section>
-        
-      </main>
-      
+        </section>        
+      </main>      
       <Footer />
     </div>
   );

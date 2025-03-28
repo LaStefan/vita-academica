@@ -43,7 +43,7 @@ const TestimonialsSection = () => {
             What Academics Say About Us
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Join our of satisfied academics community who have enhanced their online presence
+            Join our community of satisfied academics who have enhanced their online presence
           </p>
         </div>
 
