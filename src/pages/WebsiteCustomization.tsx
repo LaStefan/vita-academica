@@ -270,12 +270,11 @@ const WebsiteCustomization = () => {
     return result;
   };
 
-
   const handleUnpublish = async () => {
     setIsUnpublishing(true);
     try {
 
-      const minimalPlaceholderr = `<!DOCTYPE html>
+      const minimalPlaceholder = `<!DOCTYPE html>
         <html lang="en">
         <head>
           <meta charset="UTF-8" />
@@ -288,9 +287,9 @@ const WebsiteCustomization = () => {
 
       const unpublishWebsite = httpsCallable(functions, "deployWebsite");
 
-      await unpublishWebsite({
+      const result = await unpublishWebsite({
         userId: domain,
-        website: minimalPlaceholderr,
+        website: minimalPlaceholder,
         metadata: {
           selectedTemplate: "minimal",
           sections: {},
@@ -299,12 +298,17 @@ const WebsiteCustomization = () => {
         },
       });
 
-      setWebsiteIsLive(false);
-      toast.success("Website unpublished.");
+      if (result.data?.success) {
+        toast.success("Website unpublished successfully!");
+      } else {
+        toast.error("Failed to unpublish.");
+      }
     } catch (error) {
-      console.error("Unpublish failed:", error);
-      toast.error("Failed to unpublish.");
-    } finally {
+      console.error("Unpublishing failed:", error);
+      toast.error("Error unpublishing website.");
+    }
+    finally {
+      setWebsiteIsLive(false);
       setIsUnpublishing(false);
     }
   };
