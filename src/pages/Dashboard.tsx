@@ -45,7 +45,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
   const [websiteStatus, setWebsiteStatus] = useState({
-    isOnline: true,
+    isOnline: false,
     domain: `${
       currentUser?.displayName.toLowerCase().trim() ?? 'your-portfolio'
     }.vita-academica.app`,
