@@ -20,8 +20,10 @@ type ParserStatus =
 
 export const FirebaseCVUploader = ({
   onParsed,
+  onFileSelected,
 }: {
   onParsed?: (data: ParsedCV & { id?: string }) => void;
+  onFileSelected?: (file: File) => void;
 }) => {
   const [parsedData, setParsedData] = useState<ParsedCV | null>(null);
   const [status, setStatus] = useState<ParserStatus>('idle');
@@ -42,6 +44,10 @@ export const FirebaseCVUploader = ({
     if (!currentUser) {
       toast.error('You must be logged in to upload a CV');
       return;
+    }
+
+    if (onFileSelected) {
+      onFileSelected(file);
     }
 
     try {
