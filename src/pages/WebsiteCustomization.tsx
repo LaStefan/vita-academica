@@ -14,7 +14,9 @@ import {
   Save,
   Eye,
   Settings,
-  Check
+  Check,
+  RotateCcw,
+  Lock
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -31,7 +33,7 @@ import { renderToString } from "react-dom/server";
 import { functions, storage } from "@/lib/firebase/firebase";
 import { httpsCallable } from "firebase/functions";
 
-// Mock CV data for preview purposes
+// Mock CV data for preview purposes, this should be the specific data of the current user
 const mockCVData: ParsedCV = {
   personalInfo: {
     name: "Dr. John Johnson",
@@ -91,27 +93,53 @@ const mockCVData: ParsedCV = {
 
 const WebsiteCustomization = () => {
   const [selectedTemplate, setSelectedTemplate] = useState("academic");
-  const [sections, setSections] = useState({
-    about: true,
-    education: true,
-    experience: true,
-    publications: true,
-    achievements: true,
-    contact: true,
-    research: false,
-    teaching: false
-  });
-
+  const [sections, setSections] = useState<Record<string, boolean>>({});
   const [domain, setDomain] = useState("johnjohnson");
   const [theme, setTheme] = useState("light");
   const [cvData, setCvData] = useState<ParsedCV | null>(null);
   const [showFullPreview, setShowFullPreview] = useState(false);
+  const [isUnpublishing, setIsUnpublishing] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [websiteIsLive, setWebsiteIsLive] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isChanged, setIsChanged] = useState(false);
+  const [originalSettings, setOriginalSettings] = useState<{
+    selectedTemplate: string;
+    sections: Record<string, boolean>;
+  } | null>(null);
 
-  // Load mock data for demo purposes
+  // Load the data avaiable
   useEffect(() => {
-    setCvData(mockCVData);
+    const data = mockCVData;
+    setCvData(data);
+
+    const dynamicSections: Record<string, boolean> = {};
+
+    Object.entries(data).forEach(([key, value]) => {
+      // If it's an object or array and not empty, we include the section
+      const isNonEmpty =
+        (Array.isArray(value) && value.length > 0) ||
+        (typeof value === 'object' && value !== null && Object.keys(value).length > 0);
+
+      dynamicSections[key] = isNonEmpty;
+    });
+
+    setSections(dynamicSections);
   }, []);
+
+  useEffect(() => {
+    if (!originalSettings) {
+      setIsChanged(false);
+      return;
+    }
+
+    const hasTemplateChanged = selectedTemplate !== originalSettings.selectedTemplate;
+    const hasSectionsChanged =
+      JSON.stringify(sections) !== JSON.stringify(originalSettings.sections);
+
+    setIsChanged(hasTemplateChanged || hasSectionsChanged);
+  }, [selectedTemplate, sections, originalSettings]);
+
 
   const handleSectionToggle = (section: string) => {
     setSections(prev => ({
@@ -120,74 +148,52 @@ const WebsiteCustomization = () => {
     }));
   };
 
-  const saveWebsite = async () => {
-    if (!domain || !cvData) return;
+  const updateWebsite = async () => {
+    if (!domain || !cvData || !websiteIsLive) return;
+
+    setIsUpdating(true);
 
     try {
-      const websiteData = {
+      const result = await generateAndDeployWebsite({
+        domain,
         cvData,
         selectedTemplate,
         sections,
-        domain,
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Save (or update) the website data in Firestore
-      await setDoc(doc(collection(db, "websites"), domain), websiteData, { merge: true });
-
-      toast.success("Website saved successfully!");
-    } catch (error) {
-      console.error("Error saving website:", error);
-      toast.error("Failed to save website.");
-    }
-  };
-
-  const handlePublish = async () => {
-
-    try {
-      const styleRef = ref(storage, "websites/styles.css");
-      const firebaseCSSURL = await getDownloadURL(styleRef);
-
-      const websiteHTML = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${domain}'s Website</title>
-          <link rel="stylesheet" href="${firebaseCSSURL}">
-        </head>
-        <body>
-          ${renderToString(
-        <WebsitePreview
-          cvData={cvData}
-          template={selectedTemplate}
-          websiteSettings={{ theme, domain, sections }}
-        />
-      )}
-        </body>
-        </html>
-      `;
-
-      type DeployWebsiteResponse = {
-        success: boolean;
-        url: string;
-      };
-
-      const deployWebsite = httpsCallable<unknown, DeployWebsiteResponse>(functions, "deployWebsite");
-
-      const result = await deployWebsite({
-        userId: domain,
-        website: websiteHTML,
-        metadata: {
-          selectedTemplate,
-          sections,
-          theme,
-          domain,
-        },
+        theme
       });
 
       if (result.data?.success) {
+        toast.success("Website updated successfully!");
+      }
+      else {
+        toast.error("Failed to update website.");
+      }
+    } catch (error) {
+      console.error("Updating failed:", error);
+      toast.error("Error updating website.");
+    }
+    finally {
+      setOriginalSettings({ selectedTemplate, sections });
+      setIsChanged(false);
+      setIsUpdating(false);
+    }
+
+  };
+
+  const handlePublish = async () => {
+    setIsPublishing(true);
+
+    try {
+      const result = await generateAndDeployWebsite({
+        domain,
+        cvData: cvData!,
+        selectedTemplate,
+        sections,
+        theme
+      });
+
+      if (result.data?.success) {
+        setWebsiteIsLive(true);
         toast.success(`Website Published at ${result.data.url}`);
       } else {
         toast.error("Failed to publish.");
@@ -196,11 +202,112 @@ const WebsiteCustomization = () => {
       console.error("Publishing failed:", error);
       toast.error("Error publishing website.");
     } finally {
+      setOriginalSettings({ selectedTemplate, sections });
+      setIsChanged(false);
       setIsPublishing(false);
     }
 
   };
 
+  const generateAndDeployWebsite = async ({
+    domain,
+    cvData,
+    selectedTemplate,
+    sections,
+    theme
+  }: {
+    domain: string;
+    cvData: ParsedCV;
+    selectedTemplate: string;
+    sections: Record<string, boolean>;
+    theme: string;
+  }) => {
+    const styleRef = ref(storage, "websites/styles.css");
+    const firebaseCSSURL = await getDownloadURL(styleRef);
+
+    const websiteHTML = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${domain}'s Website</title>
+        <link rel="stylesheet" href="${firebaseCSSURL}">
+      </head>
+      <body>
+        ${renderToString(
+      <WebsitePreview
+        cvData={cvData}
+        template={selectedTemplate}
+        websiteSettings={{ theme, domain, sections }}
+      />
+    )}
+      </body>
+      </html>
+    `;
+
+    type DeployWebsiteResponse = {
+      success: boolean;
+      url: string;
+    };
+
+    const deployWebsite = httpsCallable<unknown, DeployWebsiteResponse>(
+      functions,
+      "deployWebsite"
+    );
+
+    const result = await deployWebsite({
+      userId: domain,
+      website: websiteHTML,
+      metadata: {
+        selectedTemplate,
+        sections,
+        theme,
+        domain,
+      },
+    });
+
+    return result;
+  };
+
+
+  const handleUnpublish = async () => {
+    setIsUnpublishing(true);
+    try {
+
+      const minimalPlaceholderr = `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Site Unavailable</title>
+        </head>
+        <body>
+          <h1 style="text-align: center; margin-top: 20%;">This website has not been published.</h1>
+        </body>
+        </html>`;
+
+      const unpublishWebsite = httpsCallable(functions, "deployWebsite");
+
+      await unpublishWebsite({
+        userId: domain,
+        website: minimalPlaceholderr,
+        metadata: {
+          selectedTemplate: "minimal",
+          sections: {},
+          theme: "light",
+          domain,
+        },
+      });
+
+      setWebsiteIsLive(false);
+      toast.success("Website unpublished.");
+    } catch (error) {
+      console.error("Unpublish failed:", error);
+      toast.error("Failed to unpublish.");
+    } finally {
+      setIsUnpublishing(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-academic-light">
@@ -265,7 +372,11 @@ const WebsiteCustomization = () => {
                       </div>
                     </div>
 
-                    <Button className="w-full" variant="outline">
+                    <Button
+                      className="w-full text-gray-400 border-gray-300 border-dashed line-through cursor-not-allowed"
+                      variant="outline"
+                      disabled
+                    >
                       <Plus className="h-4 w-4 mr-2" /> Browse More Templates
                     </Button>
                   </div>
@@ -278,52 +389,120 @@ const WebsiteCustomization = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/* Domain Display */}
                     <div className="space-y-2">
-                      <Label htmlFor="domain">Domain</Label>
-                      <div className="flex items-center">
-                        <Input
-                          id="domain"
-                          value={domain}
-                          onChange={(e) => setDomain(e.target.value)}
-                          className="rounded-r-none"
-                        />
-                        <div className="bg-gray-100 px-3 py-2 border border-l-0 rounded-r-md text-gray-500 text-sm">
-                          .vitaacademica.com
-                        </div>
+                      <Label htmlFor="domain">Your Website</Label>
+                      <div className="flex items-center justify-between">
+                        <a
+                          href={`https://${domain}.web.app`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline break-all"
+                        >
+                          {`https://${domain}.web.app`}
+                        </a>
                       </div>
                     </div>
 
+                    {/* Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="theme">Theme</Label>
-                      <Select value={theme} onValueChange={setTheme}>
-                        <SelectTrigger id="theme">
-                          <SelectValue placeholder="Select a theme" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="light">Light</SelectItem>
-                          <SelectItem value="dark">Dark</SelectItem>
-                          <SelectItem value="auto">Auto (System)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label>Status</Label>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${isPublishing
+                            ? "bg-yellow-500 animate-pulse"
+                            : websiteIsLive
+                              ? "bg-green-500"
+                              : "bg-red-500"
+                            }`}
+                        />
+                        <span className="text-sm">
+                          {isPublishing
+                            ? "Publishing..."
+                            : websiteIsLive
+                              ? "Live"
+                              : "Not Live"}
+                        </span>
+                      </div>
                     </div>
 
-                    <Button
-                      className="w-full mt-4"
-                      variant="default"
-                      onClick={handlePublish}
-                      disabled={isPublishing}
-                    >
-                      {isPublishing ? (
-                        <>Publishing...</>
-                      ) : (
-                        <>
-                          <Globe className="h-4 w-4 mr-2" /> Publish Website
-                        </>
-                      )}
-                    </Button>
+                    {/* Publish / Unpublish Button */}
+                    {websiteIsLive ? (
+                      <Button
+                        className="w-full mt-4 transition-opacity"
+                        variant="secondary"
+                        onClick={handleUnpublish}
+                        disabled={isUnpublishing}
+                      >
+                        {isUnpublishing ? (
+                          <>
+                            <svg
+                              className="animate-spin h-4 w-4 mr-2"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                              />
+                            </svg>
+                          </>
+                        ) : (
+                          <>
+                            <Minus className="h-4 w-4 mr-2" />
+                            Unpublish Website
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-full mt-4 transition-opacity"
+                        variant="default"
+                        onClick={handlePublish}
+                        disabled={isPublishing}
+                      >
+                        {isPublishing ? (
+                          <>
+                            <svg
+                              className="animate-spin h-4 w-4 mr-2 text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                              ></path>
+                            </svg>
+                          </>
+                        ) : (
+                          <>
+                            <Globe className="h-4 w-4 mr-2" /> Publish Website
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
+
 
               <Card>
                 <CardHeader>
@@ -344,7 +523,11 @@ const WebsiteCustomization = () => {
                       </div>
                     ))}
 
-                    <Button variant="outline" className="w-full mt-2">
+                    <Button
+                      className="w-full text-gray-400 border-gray-300 border-dashed line-through cursor-not-allowed"
+                      variant="outline"
+                      disabled
+                    >
                       <Plus className="h-4 w-4 mr-2" /> Add Custom Section
                     </Button>
                   </div>
@@ -356,11 +539,13 @@ const WebsiteCustomization = () => {
               <Card className="h-full">
                 <CardHeader className="flex-row justify-between items-center">
                   <CardTitle className="text-lg">Website Preview</CardTitle>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
+                    {/* View Full Preview Button */}
                     <Dialog open={showFullPreview} onOpenChange={setShowFullPreview}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-2" /> View Full Preview
+                        <Button variant="outline" className="h-10 px-4">
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Full Preview
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
@@ -376,13 +561,53 @@ const WebsiteCustomization = () => {
                         </div>
                       </DialogContent>
                     </Dialog>
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-4 w-4 mr-2" /> Customize
-                    </Button>
-                    <Button size="sm" onClick={saveWebsite}>
-                      <Save className="h-4 w-4 mr-2" /> Save
+
+                    {/* Update Button */}
+                    <Button
+                      onClick={updateWebsite}
+                      disabled={isUpdating || !websiteIsLive || !isChanged}
+                      variant="outline"
+                      className="h-10 px-4 transition-opacity flex items-center justify-center"
+                    >
+                      {isUpdating ? (
+                        <svg
+                          className="animate-spin h-4 w-4 mr-2"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
+                        </svg>
+                      ) : !websiteIsLive ? (
+                        <>
+                          <Lock className="h-4 w-4 mr-2" />
+                          First publish your website
+                        </>
+                      ) : !isChanged ? (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Up to Date
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Update
+                        </>
+                      )}
                     </Button>
                   </div>
+
                 </CardHeader>
                 <CardContent className="h-[700px] overflow-y-auto">
                   {cvData ? (
