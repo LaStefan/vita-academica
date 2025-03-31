@@ -142,7 +142,6 @@ const CVManager = () => {
         cvData,
         format as 'pdf' | 'word' | 'latex'
       );
-      window.open(exportUrl, '_blank');
       toast.success(`CV exported as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Error exporting CV:', error);
@@ -246,7 +245,11 @@ const CVManager = () => {
               {cvData && (
                 <>
                   <div className='lg:col-span-1 space-y-6'>
-                    <CVExporter cvData={cvData} onExport={handleExport} />
+                    <CVExporter
+                      cvData={cvData}
+                      onExport={handleExport}
+                      visibleSections={sections}
+                    />
 
                     <Card>
                       <CardHeader>

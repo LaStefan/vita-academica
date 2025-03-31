@@ -24,9 +24,12 @@ import { useFirebase } from '@/lib/firebase/FirebaseContext';
 import { getUserCVs, saveCV } from '@/lib/firebase/firestore';
 import { type ParsedCV } from '@/types/parsed-cv';
 import AcademicIntegrations from '@/components/AcademicIntegration';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { currentUser } = useFirebase();
+  const navigate = useNavigate();
+
   const [cvData, setCvData] = useState<ParsedCV>({
     personalInfo: {
       name: 'Your Name',
@@ -45,7 +48,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
   const [websiteStatus, setWebsiteStatus] = useState({
-    isOnline: true,
+    isOnline: false,
     domain: `${
       currentUser?.displayName.toLowerCase().trim() ?? 'your-portfolio'
     }.vita-academica.app`,
@@ -133,10 +136,6 @@ const Dashboard = () => {
         .toUpperCase();
     }
     return 'U';
-  };
-
-  const navigateToUploadCV = () => {
-    window.location.href = '/cv-manager';
   };
 
   return (
@@ -242,27 +241,25 @@ const Dashboard = () => {
                     <Button
                       variant='outline'
                       className='w-full justify-start'
-                      onClick={() => (window.location.href = '/cv-manager')}>
+                      onClick={() => navigate('/cv-manager')}>
                       <FileText className='mr-2 h-4 w-4' /> Manage CV
                     </Button>
                     <Button
                       variant='outline'
                       className='w-full justify-start'
-                      onClick={() =>
-                        (window.location.href = '/website-builder')
-                      }>
+                      onClick={() => navigate('/website')}>
                       <Layout className='mr-2 h-4 w-4' /> Generate Website
                     </Button>
                     <Button
                       variant='outline'
                       className='w-full justify-start'
-                      onClick={() => (window.location.href = '/activity')}>
+                      onClick={() => navigate('/activity')}>
                       <History className='mr-2 h-4 w-4' /> Activity History
                     </Button>
                     <Button
                       variant='outline'
                       className='w-full justify-start'
-                      onClick={navigateToUploadCV}>
+                      onClick={() => navigate('/cv-manager')}>
                       <Upload className='mr-2 h-4 w-4' /> Upload CV
                     </Button>
                   </div>
