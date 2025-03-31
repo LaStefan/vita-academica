@@ -10,13 +10,13 @@ import { firebaseConfig } from './config';
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
 // Initialize Firebase Functions and get a reference to the service
-const functions = getFunctions(app);
+export const functions = getFunctions(app, "europe-west1");
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);

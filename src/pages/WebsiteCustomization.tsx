@@ -26,8 +26,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { db } from "@/lib/firebase/firebase";
 import { collection, doc, setDoc, updateDoc } from "firebase/firestore";
+import { ref, getDownloadURL } from "firebase/storage";
 import { renderToString } from "react-dom/server";
-import path from "path";
+import { functions, storage } from "@/lib/firebase/firebase";
+import { httpsCallable } from "firebase/functions";
 
 // Mock CV data for preview purposes
 const mockCVData: ParsedCV = {
@@ -143,8 +145,8 @@ const WebsiteCustomization = () => {
   const handlePublish = async () => {
 
     try {
-
-      const firebaseCSSURL = `https://firebasestorage.googleapis.com/v0/b/testing-vita-academica.firebasestorage.app/o/websites%2Fstyles.css?alt=media`;
+      const styleRef = ref(storage, "websites/styles.css");
+      const firebaseCSSURL = await getDownloadURL(styleRef);
 
       const websiteHTML = `
         <!DOCTYPE html>
@@ -167,7 +169,14 @@ const WebsiteCustomization = () => {
         </html>
       `;
 
-      const payload = {
+      type DeployWebsiteResponse = {
+        success: boolean;
+        url: string;
+      };
+
+      const deployWebsite = httpsCallable<unknown, DeployWebsiteResponse>(functions, "deployWebsite");
+
+      const result = await deployWebsite({
         userId: domain,
         website: websiteHTML,
         metadata: {
@@ -176,24 +185,18 @@ const WebsiteCustomization = () => {
           theme,
           domain,
         },
-      };
+      });
 
-      const response = await fetch("https://deploywebsite-bjkal4iq7a-ew.a.run.app", // http://127.0.0.1:5005/testing-8d932/us-central1/deployWebsite" Emulator
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ payload }),
-        });
-
-      const result = await response.json();
-      if (result.success) {
-        alert(`Website Published: ${result.url}`);
+      if (result.data?.success) {
+        toast.success(`Website Published at ${result.data.url}`);
       } else {
-        alert("Failed to publish.");
+        toast.error("Failed to publish.");
       }
     } catch (error) {
       console.error("Publishing failed:", error);
-      alert("Error publishing website.");
+      toast.error("Error publishing website.");
+    } finally {
+      setIsPublishing(false);
     }
 
   };
