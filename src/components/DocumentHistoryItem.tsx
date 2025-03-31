@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -21,6 +21,9 @@ const DocumentHistoryItem: React.FC<DocumentHistoryItemProps> = ({
   activity,
 }) => {
   const { id, type, title, description, date, icon } = activity;
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
 
   const handleDownload = async () => {
     try {
@@ -47,9 +50,27 @@ const DocumentHistoryItem: React.FC<DocumentHistoryItemProps> = ({
     }
   };
 
-  const handlePreview = () => {
-    // In a real app, this would open a preview of the document
-    toast.info(`Previewing: ${title}`);
+  const handlePreview = async () => {
+    if (previewUrl) return; // Already have a URL
+
+    setIsLoading(true);
+    setPreviewError(false);
+
+    try {
+      if (activity.filePath) {
+        const url = await getFileURL(activity.filePath);
+        setPreviewUrl(url);
+      } else {
+        setPreviewError(true);
+        toast.error('Preview not available');
+      }
+    } catch (error) {
+      console.error('Error getting preview URL:', error);
+      setPreviewError(true);
+      toast.error('Failed to generate preview');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Only show document actions for upload and download types
@@ -80,25 +101,41 @@ const DocumentHistoryItem: React.FC<DocumentHistoryItemProps> = ({
                 <Button
                   variant='outline'
                   size='sm'
-                  className='text-xs flex items-center gap-1'>
-                  <Eye className='h-3 w-3' />
+                  className='text-xs flex items-center gap-1'
+                  onClick={handlePreview}>
+                  {isLoading ? (
+                    <span className='inline-block h-3 w-3 animate-spin rounded-full border-2 border-academic-orange border-r-transparent'></span>
+                  ) : (
+                    <Eye className='h-3 w-3' />
+                  )}
                   Preview
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className='max-w-3xl max-h-[90vh]'>
                 <DialogHeader>
-                  <DialogTitle>Document Preview</DialogTitle>
+                  <DialogTitle>Document Preview: {title}</DialogTitle>
                 </DialogHeader>
-                <div className='flex flex-col items-center justify-center p-10 border rounded-md bg-gray-50'>
-                  <FileText className='h-16 w-16 text-gray-300 mb-4' />
-                  <p className='text-center text-gray-600'>
-                    {title}
-                    <br />
-                    <span className='text-sm text-gray-400'>
-                      Preview would be displayed here
-                    </span>
-                  </p>
-                </div>
+                {previewError || !previewUrl ? (
+                  <div className='flex flex-col items-center justify-center p-10 border rounded-md bg-gray-50'>
+                    <FileText className='h-16 w-16 text-gray-300 mb-4' />
+                    <p className='text-center text-gray-600'>
+                      {title}
+                      <br />
+                      <span className='text-sm text-gray-400'>
+                        Preview not available
+                      </span>
+                    </p>
+                  </div>
+                ) : (
+                  <div className='border rounded min-h-[400px] bg-white p-1'>
+                    <iframe
+                      src={previewUrl}
+                      className='w-full h-full min-h-[400px]'
+                      title={`Document: ${title}`}
+                      onError={() => setPreviewError(true)}
+                    />
+                  </div>
+                )}
               </DialogContent>
             </Dialog>
             <Button
