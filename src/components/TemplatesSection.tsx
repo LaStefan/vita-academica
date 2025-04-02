@@ -49,19 +49,19 @@ const TemplatesSection = () => {
 
           <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
             <TemplateCard
-              image='/classic_template.png' // Pass the image path as a prop
+              image='images/classic-template.png' // Pass the image path as a prop
               title='Classic Academic'
               description='Traditional layout with modern touches, perfect for professors and researchers'
             />
 
             <TemplateCard
-              image='/research-focus.png'
+              image='images/research-focus.png'
               title='Research Focus'
               description='Highlight your research and publications with this specialized layout'
             />
 
             <TemplateCard
-              image='/website_template.png'
+              image='images/website-template.png'
               title='Digital Portfolio'
               description='Modern web presence for academics with visual emphasis and clean design'
             />

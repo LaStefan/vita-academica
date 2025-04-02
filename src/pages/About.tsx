@@ -1,8 +1,9 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { GraduationCap, Users, BookOpen, Globe, Mail } from 'lucide-react';
+import { GraduationCap, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const About = () => {
   return (
@@ -66,41 +67,53 @@ const About = () => {
               {/* Team member cards would go here - Adding a few examples */}
 
               <div className='text-center'>
-                <img
-                  src='public/jandre.png'
-                  alt='Jandre Kostić'
-                  className='w-32 h-32 mx-auto rounded-full object-cover mb-4'
-                />
+                <Avatar className='w-32 h-32 mx-auto mb-4'>
+                  <AvatarImage
+                    src='/images/jandre.png'
+                    alt='Jandre Kostić'
+                    className='object-cover'
+                  />
+                  <AvatarFallback>JK</AvatarFallback>
+                </Avatar>
                 <h3 className='font-bold text-lg'>Jandre Kostić</h3>
                 <p className='text-gray-600'>Founder & CEO</p>
               </div>
 
               <div className='text-center'>
-                <img
-                  src='public/stefan.png'
-                  alt='Stefan Lazarević'
-                  className='w-32 h-32 mx-auto rounded-full object-cover mb-4'
-                />
+                <Avatar className='w-32 h-32 mx-auto mb-4'>
+                  <AvatarImage
+                    src='/images/stefan.png'
+                    alt='Stefan Lazarević'
+                    className='object-cover'
+                  />
+                  <AvatarFallback>SL</AvatarFallback>
+                </Avatar>
                 <h3 className='font-bold text-lg'>Stefan Lazarević</h3>
                 <p className='text-gray-600'>Founder & CTO</p>
               </div>
 
               <div className='text-center'>
-                <img
-                  src='public/youssef.png'
-                  alt='Youssef Ben Mansour'
-                  className='w-32 h-32 mx-auto rounded-full object-cover mb-4'
-                />
+                <Avatar className='w-32 h-32 mx-auto mb-4'>
+                  <AvatarImage
+                    src='/images/youssef.png'
+                    alt='Youssef Ben Mansour'
+                    className='object-cover'
+                  />
+                  <AvatarFallback>YM</AvatarFallback>
+                </Avatar>
                 <h3 className='font-bold text-lg'>Youssef Ben Mansour</h3>
                 <p className='text-gray-600'>Founder & CSMO</p>
               </div>
 
               <div className='text-center'>
-                <img
-                  src='public/pablo.png'
-                  alt='Pablo Arteaga Bravo'
-                  className='w-32 h-32 mx-auto rounded-full object-cover mb-4'
-                />
+                <Avatar className='w-32 h-32 mx-auto mb-4'>
+                  <AvatarImage
+                    src='/images/pablo.png'
+                    alt='Pablo Arteaga Bravo'
+                    className='object-cover'
+                  />
+                  <AvatarFallback>PB</AvatarFallback>
+                </Avatar>
                 <h3 className='font-bold text-lg'>Pablo Arteaga Bravo</h3>
                 <p className='text-gray-600'>Founder & COO</p>
               </div>
