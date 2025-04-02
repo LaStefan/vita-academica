@@ -68,7 +68,7 @@ Password: test2025
 
 For contributions follow these steps:
 
-1.
+1. Switch to master branch and pull the latest changes
 
 ```bash
 git checkout master
