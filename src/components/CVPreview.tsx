@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, Save, X } from 'lucide-react';
+import { Edit, Save, Trash, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -148,6 +148,134 @@ const CVPreview: React.FC<CVPreviewProps> = ({
       ...prev,
       references: updatedReferences,
     }));
+  };
+  const updateCustomSection = (index: number, field: string, value: string) => {
+    const updatedCustomSections = [...(editingData.customSections || [])];
+    updatedCustomSections[index] = {
+      ...updatedCustomSections[index],
+      [field]: value,
+    };
+
+    setEditingData((prev) => ({
+      ...prev,
+      customSections: updatedCustomSections,
+    }));
+  };
+
+  const deleteCustomSection = (id: string) => {
+    const updatedCustomSections = (editingData.customSections || []).filter(
+      (section) => section.id !== id
+    );
+
+    setEditingData((prev) => ({
+      ...prev,
+      customSections: updatedCustomSections,
+    }));
+
+    // If we're currently editing this section, exit edit mode
+    if (editMode === `custom-${id}`) {
+      setEditMode(null);
+    }
+
+    // Update the CV data
+    onCVUpdate({
+      ...editingData,
+      customSections: updatedCustomSections,
+    });
+
+    toast.success('Custom section removed');
+  };
+
+  const renderCustomSections = () => {
+    const customSections = cvData.customSections || [];
+
+    return (
+      <>
+        {customSections.map((section) => (
+          <div key={section.id} className='bg-gray-50 p-4 rounded-lg mb-6'>
+            <div className='flex justify-between items-center border-b pb-2 mb-3'>
+              <h3 className='font-medium text-lg'>{section.title}</h3>
+              <div className='flex gap-2'>
+                {editMode === `custom-${section.id}` ? (
+                  <div className='flex gap-2'>
+                    <Button size='sm' variant='outline' onClick={handleCancel}>
+                      <X className='h-4 w-4 mr-1' /> Cancel
+                    </Button>
+                    <Button size='sm' onClick={handleSave}>
+                      <Save className='h-4 w-4 mr-1' /> Save
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <Button
+                      size='sm'
+                      variant='ghost'
+                      onClick={() => handleEdit(`custom-${section.id}`)}>
+                      <Edit className='h-4 w-4 mr-1' /> Edit
+                    </Button>
+                    <Button
+                      size='sm'
+                      variant='ghost'
+                      onClick={() => deleteCustomSection(section.id)}
+                      className='text-red-500 hover:text-red-700'>
+                      <Trash className='h-4 w-4' />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {editMode === `custom-${section.id}` ? (
+              <div className='space-y-4'>
+                <div>
+                  <label className='text-sm text-gray-500'>Section Title</label>
+                  <Input
+                    value={
+                      editingData.customSections?.find(
+                        (s) => s.id === section.id
+                      )?.title || ''
+                    }
+                    onChange={(e) => {
+                      const index =
+                        editingData.customSections?.findIndex(
+                          (s) => s.id === section.id
+                        ) || 0;
+                      updateCustomSection(index, 'title', e.target.value);
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className='text-sm text-gray-500'>Content</label>
+                  <Textarea
+                    value={
+                      editingData.customSections?.find(
+                        (s) => s.id === section.id
+                      )?.content || ''
+                    }
+                    onChange={(e) => {
+                      const index =
+                        editingData.customSections?.findIndex(
+                          (s) => s.id === section.id
+                        ) || 0;
+                      updateCustomSection(index, 'content', e.target.value);
+                    }}
+                    className='min-h-[150px]'
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className='space-y-2'>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: section.content.replace(/\n/g, '<br/>'),
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </>
+    );
   };
 
   const renderPersonalInfoSection = () => {
@@ -717,6 +845,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({
               {renderAchievementsSection()}
             </div>
           )}
+        {renderCustomSections()}
       </div>
     </div>
   );

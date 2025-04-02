@@ -4,7 +4,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import CVExporter from '@/components/CVExporter';
 import CVPreview from '@/components/CVPreview';
 import DocumentViewer from '@/components/DocumentViewer';
-import { getDocumentMetadata } from '@/services/documentParser';
+import { exportCV, getDocumentMetadata } from '@/services/documentParser';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,17 @@ import { getUserCVs, saveCV } from '@/lib/firebase/firestore';
 import { FirebaseCVUploader } from '@/components/FirebaseCVUploader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ParsedCV } from '@/types/parsed-cv';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { v4 as uuidv4 } from 'uuid';
 import { PDFViewer } from '@/components/PDFViewer';
 
 const CVManager = () => {
@@ -35,6 +46,16 @@ const CVManager = () => {
     references: true,
     summary: true,
   });
+
+  const [showAddSectionDialog, setShowAddSectionDialog] = useState(false);
+  const [newSectionTitle, setNewSectionTitle] = useState('');
+  const [newSectionContent, setNewSectionContent] = useState('');
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleFileSelected = (file: File) => {
+    setSelectedFile(file);
+  };
 
   useEffect(() => {
     // Load CV data from Firestore if user is logged in
@@ -111,8 +132,58 @@ const CVManager = () => {
   };
 
   const handleExport = async (format: string) => {
-    // This will be handled by the CVExporter component
-    console.log(`Exporting CV as ${format}`);
+    if (!cvData) {
+      toast.error('No CV data to export');
+      return;
+    }
+
+    try {
+      const exportUrl = await exportCV(
+        cvData,
+        format as 'pdf' | 'word' | 'latex'
+      );
+      window.open(exportUrl, '_blank');
+      toast.success(`CV exported as ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Error exporting CV:', error);
+      toast.error(`Failed to export CV as ${format.toUpperCase()}`);
+    }
+  };
+
+  const handleAddSection = () => {
+    if (!newSectionTitle.trim()) {
+      toast.error('Section title is required');
+      return;
+    }
+
+    if (!cvData) {
+      toast.error('No CV data available');
+      return;
+    }
+
+    const updatedCvData = { ...cvData };
+
+    // Initialize customSections array if it doesn't exist
+    if (!updatedCvData.customSections) {
+      updatedCvData.customSections = [];
+    }
+
+    // Add the new custom section
+    updatedCvData.customSections.push({
+      id: uuidv4(),
+      title: newSectionTitle,
+      content: newSectionContent,
+    });
+
+    // Update the CV data
+    handleCVUpdate(updatedCvData);
+
+    // Reset form and close dialog
+    setNewSectionTitle('');
+    setNewSectionContent('');
+    setShowAddSectionDialog(false);
+
+    toast.success('Custom section added successfully');
   };
 
   // Get document metadata for the DocumentViewer component
@@ -150,7 +221,10 @@ const CVManager = () => {
               <div className='lg:col-span-3'>
                 {!cvData ? (
                   <div className='mb-6'>
-                    <FirebaseCVUploader onParsed={handleCVParsed} />
+                    <FirebaseCVUploader
+                      onParsed={handleCVParsed}
+                      onFileSelected={handleFileSelected}
+                    />
                   </div>
                 ) : (
                   <div className='mb-6'>
@@ -172,7 +246,11 @@ const CVManager = () => {
               {cvData && (
                 <>
                   <div className='lg:col-span-1 space-y-6'>
-                    <CVExporter cvData={cvData} onExport={handleExport} />
+                    <CVExporter
+                      cvData={cvData}
+                      onExport={handleExport}
+                      visibleSections={sections}
+                    />
 
                     <Card>
                       <CardHeader>
@@ -200,10 +278,84 @@ const CVManager = () => {
                               </div>
                             )
                           )}
+                          {/* Custom sections toggle */}
+                          {cvData.customSections &&
+                            cvData.customSections.length > 0 && (
+                              <div className='pt-2 border-t mt-2'>
+                                <p className='text-sm font-medium mb-2'>
+                                  Custom Sections
+                                </p>
+                                {cvData.customSections.map((section) => (
+                                  <div
+                                    key={section.id}
+                                    className='flex items-center justify-between mb-2'>
+                                    <Label
+                                      htmlFor={`custom-section-${section.id}`}
+                                      className='text-sm'>
+                                      {section.title}
+                                    </Label>
+                                    {/* We could add toggle functionality for custom sections here if needed */}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
 
-                          <Button variant='outline' className='w-full mt-2'>
-                            <Plus className='h-4 w-4 mr-2' /> Add Custom Section
-                          </Button>
+                          <Dialog
+                            open={showAddSectionDialog}
+                            onOpenChange={setShowAddSectionDialog}>
+                            <DialogTrigger asChild>
+                              <Button variant='outline' className='w-full mt-2'>
+                                <Plus className='h-4 w-4 mr-2' /> Add Custom
+                                Section
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Add Custom Section</DialogTitle>
+                              </DialogHeader>
+                              <div className='space-y-4 py-4'>
+                                <div className='space-y-2'>
+                                  <Label htmlFor='section-title'>
+                                    Section Title
+                                  </Label>
+                                  <Input
+                                    id='section-title'
+                                    value={newSectionTitle}
+                                    onChange={(e) =>
+                                      setNewSectionTitle(e.target.value)
+                                    }
+                                    placeholder='e.g., Projects, Certifications, etc.'
+                                  />
+                                </div>
+                                <div className='space-y-2'>
+                                  <Label htmlFor='section-content'>
+                                    Content
+                                  </Label>
+                                  <Textarea
+                                    id='section-content'
+                                    value={newSectionContent}
+                                    onChange={(e) =>
+                                      setNewSectionContent(e.target.value)
+                                    }
+                                    placeholder='Enter the content for this section...'
+                                    className='min-h-[150px]'
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <Button
+                                  variant='outline'
+                                  onClick={() =>
+                                    setShowAddSectionDialog(false)
+                                  }>
+                                  Cancel
+                                </Button>
+                                <Button onClick={handleAddSection}>
+                                  Add Section
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
                         </div>
                       </CardContent>
                     </Card>
@@ -220,8 +372,8 @@ const CVManager = () => {
                           value={activeTab}
                           onValueChange={setActiveTab}
                           className='h-full flex flex-col'>
-                          <div className='px-6 pt-2'>
-                            <TabsList className='grid w-full grid-cols-2'>
+                          <div className='px-6 pb-4'>
+                            <TabsList className='grid w-full grid-cols-2 pb-6'>
                               <TabsTrigger value='preview'>
                                 CV Preview
                               </TabsTrigger>
@@ -233,8 +385,8 @@ const CVManager = () => {
 
                           <TabsContent
                             value='preview'
-                            className='flex-1 overflow-hidden m-0 p-0'>
-                            <div className='h-full overflow-auto px-6 pb-6'>
+                            className='flex-1 overflow-auto m-0'>
+                            <div className='h-full px-6 pb-6'>
                               <CVPreview
                                 cvData={cvData}
                                 onCVUpdate={handleCVUpdate}
@@ -243,20 +395,18 @@ const CVManager = () => {
                             </div>
                           </TabsContent>
 
-                          <TabsContent
-                            value='preview'
-                            className='flex-1 overflow-hidden m-0 p-0'>
-                            <div className='h-full overflow-auto px-6 pb-6'>
-                              {/* <PDFViewer
-                            // file={file}
-                            > */}
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent
+                          {/* <TabsContent
                             value='document'
                             className='flex-1 overflow-hidden m-0 p-0'>
                             <div className='h-full overflow-auto px-6 pb-6'>
+                              <PDFViewer file={selectedFile}></PDFViewer>
+                            </div>
+                          </TabsContent> */}
+
+                          <TabsContent
+                            value='document'
+                            className='flex-1 overflow-auto m-0'>
+                            <div className='h-full px-6 pb-6'>
                               {cvData.cvFileUrl ? (
                                 <DocumentViewer
                                   fileUrl={cvData.cvFileUrl}

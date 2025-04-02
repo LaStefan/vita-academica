@@ -36,18 +36,21 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [pdfLoaded, setPdfLoaded] = useState(false);
   const [pdfError, setPdfError] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(true);
 
   useEffect(() => {
     // Reset state when fileUrl changes
     if (fileUrl) {
       setPdfLoaded(false);
       setPdfError(false);
+      setPdfLoading(true);
     }
   }, [fileUrl]);
 
   const handlePdfLoad = () => {
     setPdfLoaded(true);
     setPdfError(false);
+    setPdfLoading(false);
   };
 
   const handlePdfError = () => {
@@ -123,6 +126,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         {isPdf ? (
           <div className='space-y-4'>
             <div className='w-full aspect-[3/4] max-h-96 bg-gray-100 rounded border overflow-hidden'>
+              {pdfLoading && !pdfLoaded && !pdfError && (
+                <div className='flex flex-col items-center justify-center h-full p-4 text-center'>
+                  <div className='animate-spin rounded-full h-12 w-12 border-4 border-solid border-gray-200 border-t-academic-orange'></div>
+                  <p className='text-gray-600 mt-4'>
+                    Loading document preview...
+                  </p>
+                </div>
+              )}
+
               {pdfError ? (
                 <div className='flex flex-col items-center justify-center h-full p-4 text-center'>
                   <FileText className='h-12 w-12 text-gray-400 mb-3' />
@@ -145,7 +157,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               ) : (
                 <iframe
                   src={fileUrl}
-                  className='w-full h-full'
+                  className={`w-full h-full transition-opacity duration-300 ${
+                    pdfLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
                   title='PDF Preview'
                   onLoad={handlePdfLoad}
                   onError={handlePdfError}
