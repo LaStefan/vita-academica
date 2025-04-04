@@ -25,6 +25,7 @@ import { getUserCVs, saveCV } from '@/lib/firebase/firestore';
 import { type ParsedCV } from '@/types/parsed-cv';
 import AcademicIntegrations from '@/components/AcademicIntegration';
 import { useNavigate } from 'react-router-dom';
+import { WebsiteStatus } from '@/components/WebsiteStatusCard';
 
 const Dashboard = () => {
   const { currentUser } = useFirebase();
@@ -48,7 +49,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
   const [websiteStatus, setWebsiteStatus] = useState({
-    isOnline: false,
+    status: 'offline' as WebsiteStatus,
     domain: `${currentUser?.displayName.toLowerCase().trim() ?? 'your-portfolio'
       }.vita-academica.app`,
   });
@@ -72,8 +73,8 @@ const Dashboard = () => {
           setWebsiteStatus({
             domain: `${cvData?.personalInfo?.name.toLowerCase().trim() ??
               websiteStatus.domain
-              }.vita-academica.app`,
-            isOnline: websiteStatus.isOnline,
+              }`,
+            status: websiteStatus.status,
           });
           toast.success('Loaded your most recent CV');
         }
@@ -115,13 +116,14 @@ const Dashboard = () => {
   };
 
   const handleToggleWebsiteStatus = () => {
-    setWebsiteStatus((prev) => ({
-      ...prev,
-      isOnline: !prev.isOnline,
+    setWebsiteStatus((prevStatus) => ({
+      ...prevStatus,
+      status:
+        prevStatus.status === 'online' ? 'offline' : 'online',
     }));
 
     toast.success(
-      `Website is now ${websiteStatus.isOnline ? 'offline' : 'online'}`
+      `Website is now ${websiteStatus.status === 'online' ? 'offline' : 'online'}`
     );
   };
 
@@ -268,8 +270,9 @@ const Dashboard = () => {
 
               <WebsiteStatusCard
                 domain={websiteStatus.domain}
-                isOnline={websiteStatus.isOnline}
+                status={websiteStatus.status}
                 onToggleStatus={handleToggleWebsiteStatus}
+                showEditButton={true}
               />
             </div>
           </div>

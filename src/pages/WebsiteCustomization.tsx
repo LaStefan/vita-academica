@@ -32,6 +32,9 @@ import { ref, getDownloadURL } from "firebase/storage";
 import { renderToString } from "react-dom/server";
 import { functions, storage } from "@/lib/firebase/firebase";
 import { httpsCallable } from "firebase/functions";
+import WebsiteStatusCard from "@/components/WebsiteStatusCard";
+import { WebsiteStatus } from "@/components/WebsiteStatusCard";
+import { set } from "date-fns";
 
 // Mock CV data for preview purposes, this should be the specific data of the current user
 const mockCVData: ParsedCV = {
@@ -98,9 +101,7 @@ const WebsiteCustomization = () => {
   const [theme, setTheme] = useState("light");
   const [cvData, setCvData] = useState<ParsedCV | null>(null);
   const [showFullPreview, setShowFullPreview] = useState(false);
-  const [isUnpublishing, setIsUnpublishing] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [websiteIsLive, setWebsiteIsLive] = useState(false);
+  const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>('offline');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
   const [originalSettings, setOriginalSettings] = useState<{
@@ -149,7 +150,7 @@ const WebsiteCustomization = () => {
   };
 
   const updateWebsite = async () => {
-    if (!domain || !cvData || !websiteIsLive) return;
+    if (!domain || !cvData || websiteStatus != 'online') return;
 
     setIsUpdating(true);
 
@@ -171,8 +172,7 @@ const WebsiteCustomization = () => {
     } catch (error) {
       console.error("Updating failed:", error);
       toast.error("Error updating website.");
-    }
-    finally {
+    } finally {
       setOriginalSettings({ selectedTemplate, sections });
       setIsChanged(false);
       setIsUpdating(false);
@@ -181,7 +181,7 @@ const WebsiteCustomization = () => {
   };
 
   const handlePublish = async () => {
-    setIsPublishing(true);
+    setWebsiteStatus('publishing');
 
     try {
       const result = await generateAndDeployWebsite({
@@ -193,18 +193,19 @@ const WebsiteCustomization = () => {
       });
 
       if (result.data?.success) {
-        setWebsiteIsLive(true);
+        setWebsiteStatus('online');
         toast.success(`Website Published at ${result.data.url}`);
       } else {
+        setWebsiteStatus('offline');
         toast.error("Failed to publish.");
       }
     } catch (error) {
       console.error("Publishing failed:", error);
+      setWebsiteStatus('offline');
       toast.error("Error publishing website.");
     } finally {
       setOriginalSettings({ selectedTemplate, sections });
       setIsChanged(false);
-      setIsPublishing(false);
     }
 
   };
@@ -271,7 +272,7 @@ const WebsiteCustomization = () => {
   };
 
   const handleUnpublish = async () => {
-    setIsUnpublishing(true);
+    setWebsiteStatus('unpublishing');
     try {
 
       const minimalPlaceholder = `<!DOCTYPE html>
@@ -300,16 +301,18 @@ const WebsiteCustomization = () => {
 
       if (result.data?.success) {
         toast.success("Website unpublished successfully!");
+        setWebsiteStatus('offline');
       } else {
         toast.error("Failed to unpublish.");
+        setWebsiteStatus('online');
       }
     } catch (error) {
       console.error("Unpublishing failed:", error);
+      setWebsiteStatus('online');
       toast.error("Error unpublishing website.");
     }
     finally {
-      setWebsiteIsLive(false);
-      setIsUnpublishing(false);
+      setWebsiteStatus('offline');
     }
   };
 
@@ -387,126 +390,11 @@ const WebsiteCustomization = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Website Settings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Domain Display */}
-                    <div className="space-y-2">
-                      <Label htmlFor="domain">Your Website</Label>
-                      <div className="flex items-center justify-between">
-                        <a
-                          href={`https://${domain}.web.app`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline break-all"
-                        >
-                          {`https://${domain}.web.app`}
-                        </a>
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <div className="space-y-2">
-                      <Label>Status</Label>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`h-2 w-2 rounded-full ${isPublishing
-                            ? "bg-yellow-500 animate-pulse"
-                            : websiteIsLive
-                              ? "bg-green-500"
-                              : "bg-red-500"
-                            }`}
-                        />
-                        <span className="text-sm">
-                          {isPublishing
-                            ? "Publishing..."
-                            : websiteIsLive
-                              ? "Live"
-                              : "Not Live"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Publish / Unpublish Button */}
-                    {websiteIsLive ? (
-                      <Button
-                        className="w-full mt-4 transition-opacity"
-                        variant="secondary"
-                        onClick={handleUnpublish}
-                        disabled={isUnpublishing}
-                      >
-                        {isUnpublishing ? (
-                          <>
-                            <svg
-                              className="animate-spin h-4 w-4 mr-2"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              />
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                              />
-                            </svg>
-                          </>
-                        ) : (
-                          <>
-                            <Minus className="h-4 w-4 mr-2" />
-                            Unpublish Website
-                          </>
-                        )}
-                      </Button>
-                    ) : (
-                      <Button
-                        className="w-full mt-4 transition-opacity"
-                        variant="default"
-                        onClick={handlePublish}
-                        disabled={isPublishing}
-                      >
-                        {isPublishing ? (
-                          <>
-                            <svg
-                              className="animate-spin h-4 w-4 mr-2 text-white"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                              ></path>
-                            </svg>
-                          </>
-                        ) : (
-                          <>
-                            <Globe className="h-4 w-4 mr-2" /> Publish Website
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
+              <WebsiteStatusCard
+                domain={domain}
+                status={websiteStatus}
+                onToggleStatus={websiteStatus == 'online' ? handleUnpublish : handlePublish}
+              />
 
               <Card>
                 <CardHeader>
@@ -569,7 +457,7 @@ const WebsiteCustomization = () => {
                     {/* Update Button */}
                     <Button
                       onClick={updateWebsite}
-                      disabled={isUpdating || !websiteIsLive || !isChanged}
+                      disabled={isUpdating || !isChanged || websiteStatus != 'online'}
                       variant="outline"
                       className="h-10 px-4 transition-opacity flex items-center justify-center"
                     >
@@ -593,7 +481,7 @@ const WebsiteCustomization = () => {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                           />
                         </svg>
-                      ) : !websiteIsLive ? (
+                      ) : websiteStatus != 'online' ? (
                         <>
                           <Lock className="h-4 w-4 mr-2" />
                           First publish your website
