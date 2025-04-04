@@ -2,15 +2,20 @@ import { onCall } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import * as path from "path";
 import * as fs from "fs";
+import { defineSecret } from "firebase-functions/params";
 
 admin.initializeApp();
 
-
 const bucket = admin.storage().bucket();
-const token = "1//09FteSpjMvmmZCgYIARAAGAkSNwF-L9IrD-m-6bwtYI_GGKTJb3oO7V1On5QKfQnxhSVYrITsjjA83Akpowq_IZmBGzuuWSdlg7E";
+const TOKEN = defineSecret("CLI_TOKEN");
 
-export const deployWebsite = onCall({ region: "europe-west1" }, async (req) => {
+export const deployWebsite = onCall({ region: "europe-west1", secrets: [TOKEN], }, async (req) => {
     const { userId, domain, websiteHTML } = req.data;
+
+    const token = TOKEN.value(); // Get the token value from the secret
+    if (!token) {
+        throw new Error("Token not found");
+    }
 
     if (!userId || !domain || !websiteHTML) {
         throw new Error("Missing user ID, domain or website html");
