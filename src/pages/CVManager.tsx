@@ -142,7 +142,6 @@ const CVManager = () => {
         cvData,
         format as 'pdf' | 'word' | 'latex'
       );
-      window.open(exportUrl, '_blank');
       toast.success(`CV exported as ${format.toUpperCase()}`);
     } catch (error) {
       console.error('Error exporting CV:', error);
@@ -189,9 +188,9 @@ const CVManager = () => {
   // Get document metadata for the DocumentViewer component
   const documentMetadata = cvData?.cvFileUrl
     ? getDocumentMetadata(
-        cvData.cvFileUrl,
-        `${cvData.personalInfo?.name}'s CV` || 'Document'
-      )
+      cvData.cvFileUrl,
+      `${cvData.personalInfo?.name}'s CV` || 'Document'
+    )
     : undefined;
 
   return (

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page Not Found</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+        padding: 0 1rem;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        background-color: #f9fafb;
+      }
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: #111827;
+      }
+      p {
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+        max-width: 36rem;
+      }
+      a {
+        color: #2563eb;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Page Not Found</h1>
+    <p>
+      The page you are looking for doesn't exist or you may have mistyped the
+      address.
+    </p>
+    <a href="/">Go back to homepage</a>
+
+    <script>
+      // Single Page App redirection script
+      // This redirects to the root, which will then use the router to handle the route
+      const path = window.location.pathname;
+      const queryParams = window.location.search;
+      if (path !== '/' && path !== '/404.html') {
+        window.location.href =
+          '/' + (path.startsWith('/') ? path.substr(1) : path) + queryParams;
+      }
+    </script>
+  </body>
+</html>

@@ -5,6 +5,12 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
   },
   "functions": [
@@ -29,9 +35,6 @@
     },
     "firestore": {
       "port": 8085
-    },
-    "storage": {
-      "port": 9199
     },
     "hosting": {
       "port": 5005
@@ -59,10 +62,6 @@
       "enabled": true
     },
     "singleProjectMode": true
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
   },
   "storage": {
     "rules": "storage.rules"

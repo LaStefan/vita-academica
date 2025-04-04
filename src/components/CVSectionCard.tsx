@@ -22,17 +22,27 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import React from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
 
 type CVSectionCardProps = {
   title: string;
   icon: React.ReactNode;
   type:
-    | 'experience'
-    | 'education'
-    | 'publications'
-    | 'skills'
-    | 'achievements'
-    | 'references';
+  | 'experience'
+  | 'education'
+  | 'publications'
+  | 'skills'
+  | 'achievements'
+  | 'references';
   items: any[];
   cvData: ParsedCV;
   onUpdate: (updatedCV: ParsedCV) => void;
@@ -51,6 +61,9 @@ const CVSectionCard: React.FC<CVSectionCardProps> = ({
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+
   // Sort items for education and experience by year/period (newest first)
   const sortedItems = React.useMemo(() => {
     if (type === 'education') {
@@ -158,17 +171,25 @@ const CVSectionCard: React.FC<CVSectionCardProps> = ({
   };
 
   const handleDelete = (index: number) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete this ${title.toLowerCase()} item?`
-      )
-    ) {
+    setDeleteIndex(index);
+    setIsDialogOpen(true); // Open the dialog
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteIndex !== null) {
       const updatedCV = { ...cvData };
       const newItems = [...items];
-      newItems.splice(index, 1);
+      newItems.splice(deleteIndex, 1);
       updatedCV[type] = newItems;
       onUpdate(updatedCV);
     }
+    setIsDialogOpen(false); // Close the dialog
+    setDeleteIndex(null);
+  };
+
+  const handleCancelDelete = () => {
+    setIsDialogOpen(false); // Close the dialog
+    setDeleteIndex(null);
   };
 
   const renderItem = (item: any) => {
@@ -598,7 +619,27 @@ const CVSectionCard: React.FC<CVSectionCardProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this {title.toLowerCase()} item?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card >
   );
 };
 

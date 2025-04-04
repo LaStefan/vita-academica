@@ -29,18 +29,10 @@ import {
 } from '@/components/ui/select';
 
 import { saveAs } from 'file-saver';
-import { Document, Packer } from 'docx';
-import {
-  exportCV,
-  createWordDocument,
-  generateLaTeX,
-} from '@/services/documentParser';
-import {
-  CVPDFDownloadLink,
-  CVPDFPreview,
-  generatePDFBlob,
-} from '@/services/pdfGenerator';
-import { FaFilePdf, FaFileWord } from 'react-icons/fa';
+import { Packer } from 'docx';
+import { createWordDocument, generateLaTeX } from '@/services/documentParser';
+import { CVPDFPreview, generatePDFBlob } from '@/services/pdfGenerator';
+import { FaFileAlt, FaFilePdf, FaFileWord } from 'react-icons/fa';
 
 type CVExporterProps = {
   cvData: ParsedCV | null;
@@ -57,6 +49,7 @@ const CVExporter: React.FC<CVExporterProps> = ({
   const [template, setTemplate] = useState<string>('classic');
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isDisabledTemplate, setDisabledTemplate] = useState(false);
 
   const handleExport = async () => {
     if (!cvData) {
@@ -85,23 +78,23 @@ const CVExporter: React.FC<CVExporterProps> = ({
         saveAs(pdfBlob, `${fileName}.pdf`);
       } else if (format === 'word') {
         // Create Word document with template and visibleSections
-        const doc = createWordDocument(cvData, template, visibleSections);
+        const doc = createWordDocument(cvData, template);
         const blob = await Packer.toBlob(doc);
         saveAs(blob, `${fileName}.docx`);
       } else if (format === 'latex') {
         // Generate LaTeX with template and visibleSections
-        const latexCode = generateLaTeX(cvData, template, visibleSections);
+        const latexCode = generateLaTeX(cvData, template);
         const blob = new Blob([latexCode], { type: 'text/plain' });
         saveAs(blob, `${fileName}.tex`);
       }
 
+      // if (onExport) {
+      //   await onExport(format);
+      // }
+
       toast.success(`CV exported as ${format.toUpperCase()}`, {
         description: 'Your file has been downloaded',
       });
-
-      if (onExport) {
-        await onExport(format);
-      }
     } catch (error) {
       console.error(`Error exporting to ${format}:`, error);
       toast.error(`Failed to export CV as ${format.toUpperCase()}`);
@@ -223,11 +216,10 @@ const CVExporter: React.FC<CVExporterProps> = ({
 \\begin{document}
 \\begin{center}
   \\textbf{\\LARGE ${cvData?.personalInfo?.name || 'Full Name'}}\\\\
-  ${
-    cvData?.personalInfo?.title
-      ? `\\textit{${cvData.personalInfo.title}}\\\\`
-      : ''
-  }
+  ${cvData?.personalInfo?.title
+            ? `\\textit{${cvData.personalInfo.title}}\\\\`
+            : ''
+          }
   ${cvData?.personalInfo?.email || ''}
   ${cvData?.personalInfo?.phone ? ` | ${cvData.personalInfo.phone}` : ''}
 \\end{center}
@@ -236,15 +228,13 @@ const CVExporter: React.FC<CVExporterProps> = ({
 ${cvData?.summary || 'Professional summary goes here.'}
 
 \\section{EDUCATION}
-\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${
-          cvData?.education?.[0]?.year || 'Year'
-        }\\\\
+\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${cvData?.education?.[0]?.year || 'Year'
+          }\\\\
 ${cvData?.education?.[0]?.institution || 'Institution'}
 
 \\section{EXPERIENCE}
-\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${
-          cvData?.experience?.[0]?.period || 'Period'
-        }\\\\
+\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${cvData?.experience?.[0]?.period || 'Period'
+          }\\\\
 ${cvData?.experience?.[0]?.company || 'Company'}\\\\
 ${cvData?.experience?.[0]?.description || 'Job description.'}
 
@@ -263,33 +253,29 @@ ${cvData?.experience?.[0]?.description || 'Job description.'}
 \\begin{document}
 \\begin{center}
   \\textbf{\\LARGE ${cvData?.personalInfo?.name || 'Full Name'}}\\\\
-  ${
-    cvData?.personalInfo?.title
-      ? `\\textit{${cvData.personalInfo.title}}\\\\`
-      : ''
-  }
+  ${cvData?.personalInfo?.title
+            ? `\\textit{${cvData.personalInfo.title}}\\\\`
+            : ''
+          }
   ${cvData?.personalInfo?.email || ''}
   ${cvData?.personalInfo?.phone ? ` | ${cvData.personalInfo.phone}` : ''}
 \\end{center}
 
 \\section*{Publications}
 \\begin{enumerate}
-${
-  cvData?.publications?.[0]
-    ? `\\item ${cvData.publications[0].authors.replace(
-        /,\\s*([^,]+)$/,
-        ' and $1'
-      )} (${cvData.publications[0].year}). \\textit{${
-        cvData.publications[0].title
-      }}. ${cvData.publications[0].venue}.`
-    : '\\item Authors (Year). \\textit{Title}. Venue.'
-}
+${cvData?.publications?.[0]
+            ? `\\item ${cvData.publications[0].authors.replace(
+              /,\\s*([^,]+)$/,
+              ' and $1'
+            )} (${cvData.publications[0].year}). \\textit{${cvData.publications[0].title
+            }}. ${cvData.publications[0].venue}.`
+            : '\\item Authors (Year). \\textit{Title}. Venue.'
+          }
 \\end{enumerate}
 
 \\section*{Education}
-\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${
-          cvData?.education?.[0]?.year || 'Year'
-        }\\\\
+\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${cvData?.education?.[0]?.year || 'Year'
+          }\\\\
 ${cvData?.education?.[0]?.institution || 'Institution'}
 
 \\section*{Research Interests}
@@ -320,16 +306,14 @@ ${cvData?.summary || 'Research interests summary goes here.'}
 ${cvData?.summary || 'Professional profile goes here.'}
 
 \\section*{EXPERIENCE}
-\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${
-          cvData?.experience?.[0]?.period || 'Period'
-        }\\\\
+\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${cvData?.experience?.[0]?.period || 'Period'
+          }\\\\
 ${cvData?.experience?.[0]?.company || 'Company'}\\\\
 ${cvData?.experience?.[0]?.description || 'Job description.'}
 
 \\section*{EDUCATION}
-\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${
-          cvData?.education?.[0]?.year || 'Year'
-        }\\\\
+\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${cvData?.education?.[0]?.year || 'Year'
+          }\\\\
 ${cvData?.education?.[0]?.institution || 'Institution'}
 
 \\end{document}`;
@@ -345,11 +329,10 @@ ${cvData?.education?.[0]?.institution || 'Institution'}
 \\begin{document}
 \\begin{center}
   \\textbf{\\LARGE ${cvData?.personalInfo?.name || 'Full Name'}}\\\\
-  ${
-    cvData?.personalInfo?.title
-      ? `\\textit{${cvData.personalInfo.title}}\\\\`
-      : ''
-  }
+  ${cvData?.personalInfo?.title
+            ? `\\textit{${cvData.personalInfo.title}}\\\\`
+            : ''
+          }
   ${cvData?.personalInfo?.email || ''}
   ${cvData?.personalInfo?.phone ? ` | ${cvData.personalInfo.phone}` : ''}
 \\end{center}
@@ -358,20 +341,17 @@ ${cvData?.education?.[0]?.institution || 'Institution'}
 ${cvData?.summary || 'Professional summary goes here.'}
 
 \\section*{Education}
-\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${
-          cvData?.education?.[0]?.year || 'Year'
-        }\\\\
+\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${cvData?.education?.[0]?.year || 'Year'
+          }\\\\
 ${cvData?.education?.[0]?.institution || 'Institution'}
-${
-  cvData?.education?.[0]?.description
-    ? `\\\\${cvData.education[0].description}`
-    : ''
-}
+${cvData?.education?.[0]?.description
+            ? `\\\\${cvData.education[0].description}`
+            : ''
+          }
 
 \\section*{Experience}
-\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${
-          cvData?.experience?.[0]?.period || 'Period'
-        }\\\\
+\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${cvData?.experience?.[0]?.period || 'Period'
+          }\\\\
 ${cvData?.experience?.[0]?.company || 'Company'}\\\\
 ${cvData?.experience?.[0]?.description || 'Job description.'}
 
@@ -395,14 +375,23 @@ ${cvData?.experience?.[0]?.description || 'Job description.'}
             setFormat(value as 'pdf' | 'word' | 'latex')
           }>
           <TabsList className='grid grid-cols-3 mb-4'>
-            <TabsTrigger value='pdf' className='flex items-center gap-2'>
+            <TabsTrigger
+              value='pdf'
+              className='flex items-center gap-2'
+              onClick={() => setDisabledTemplate(false)}>
               <FaFilePdf className='h-4 w-4' /> PDF
             </TabsTrigger>
-            <TabsTrigger value='word' className='flex items-center gap-2'>
+            <TabsTrigger
+              value='word'
+              className='flex items-center gap-2'
+              onClick={() => setDisabledTemplate(false)}>
               <FaFileWord className='h-4 w-4' /> Word
             </TabsTrigger>
-            <TabsTrigger value='latex' className='flex items-center gap-2'>
-              <FileText className='h-4 w-4' /> LaTeX
+            <TabsTrigger
+              value='latex'
+              className='flex items-center gap-2'
+              onClick={() => setDisabledTemplate(true)}>
+              <FaFileAlt className='h-4 w-4' /> LaTeX
             </TabsTrigger>
           </TabsList>
 
@@ -410,7 +399,10 @@ ${cvData?.experience?.[0]?.description || 'Job description.'}
             <label className='text-sm text-gray-500 mb-2 block'>
               CV Template
             </label>
-            <Select value={template} onValueChange={setTemplate}>
+            <Select
+              value={template}
+              onValueChange={setTemplate}
+              disabled={isDisabledTemplate}>
               <SelectTrigger>
                 <SelectValue placeholder='Select template' />
               </SelectTrigger>
