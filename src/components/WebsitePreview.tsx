@@ -500,7 +500,7 @@ const WebsitePreview: React.FC<WebsitePreviewProps> = ({
             <div className="flex-1">
               {/* UU Logo */}
               <div className="mb-6">
-                <img src="/uu-logo.png" alt="Utrecht University Logo" className="h-12 w-auto" />
+                {/* <img src="/uu-logo.png" alt="Utrecht University Logo" className="h-12 w-auto" /> */}
               </div>
 
               <h1 className="text-4xl md:text-5xl font-bold mb-3">{cvData.personalInfo?.name}</h1>
@@ -576,7 +576,7 @@ const WebsitePreview: React.FC<WebsitePreviewProps> = ({
               </div>
             </div>
 
-            {/* Right side: Profile Picture */}
+            {/* Right side: Profile Picture
             <div className="flex items-center justify-center md:justify-end">
               <div className="rounded-full overflow-hidden border-4 border-white h-40 w-40 shadow-md">
                 <img
@@ -585,7 +585,7 @@ const WebsitePreview: React.FC<WebsitePreviewProps> = ({
                   className="h-full w-full object-cover"
                 />
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -931,7 +931,7 @@ const WebsitePreview: React.FC<WebsitePreviewProps> = ({
       <div className="bg-black text-white py-8 px-6">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <img src="/uu-logo.png" alt="Utrecht University Logo" className="h-10 w-auto" />
+            {/* <img src="/uu-logo.png" alt="Utrecht University Logo" className="h-10 w-auto" /> */}
             <div className="text-sm">
               <p>© {new Date().getFullYear()} Utrecht University</p>
               <p className="text-gray-400">Sharing science, shaping tomorrow</p>

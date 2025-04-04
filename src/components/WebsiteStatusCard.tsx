@@ -23,6 +23,7 @@ export type WebsiteStatus = 'online' | 'offline' | 'publishing' | 'unpublishing'
 interface WebsiteStatusCardProps {
   domain: string;
   status: WebsiteStatus;
+  lastUpdated: string;
   onToggleStatus: () => void;
   showEditButton?: boolean;
 }
@@ -30,6 +31,7 @@ interface WebsiteStatusCardProps {
 const WebsiteStatusCard: React.FC<WebsiteStatusCardProps> = ({
   domain,
   status,
+  lastUpdated,
   onToggleStatus,
   showEditButton = false,
 }) => {
@@ -98,7 +100,7 @@ const WebsiteStatusCard: React.FC<WebsiteStatusCardProps> = ({
             <div className='flex items-center gap-2'>
               {renderBadge()}
               <span className='text-sm text-gray-500'>
-                Last updated: {new Date().toLocaleString()}
+                Last updated: {lastUpdated}
               </span>
             </div>
             {renderToggleButton()}

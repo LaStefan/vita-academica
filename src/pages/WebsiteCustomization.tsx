@@ -35,74 +35,17 @@ import { httpsCallable } from "firebase/functions";
 import WebsiteStatusCard from "@/components/WebsiteStatusCard";
 import { WebsiteStatus } from "@/components/WebsiteStatusCard";
 import { set } from "date-fns";
-import { getUserCVs } from "@/lib/firebase/firestore";
+import { getUserCVs, getWebsiteSettings, saveWebsiteSettings } from "@/lib/firebase/firestore";
 import { useFirebase } from "@/lib/firebase/FirebaseContext";
-
-// Mock CV data for preview purposes, this should be the specific data of the current user
-const mockCVData: ParsedCV = {
-  personalInfo: {
-    name: "Dr. John Johnson",
-    title: "Professor of Computer Science",
-    email: "johnjohnson@university.edu",
-    phone: "+31 123 456 789",
-    location: "Utrecht, UT, Netherlands",
-  },
-  education: [
-    {
-      degree: "Ph.D. in Computer Science",
-      institution: "MIT",
-      year: "2015",
-      description: "Thesis: Advanced Neural Networks for Natural Language Processing"
-    },
-    {
-      degree: "M.S. in Computer Science",
-      institution: "Stanford University",
-      year: "2012"
-    },
-    {
-      degree: "B.S. in Mathematics",
-      institution: "University of California, Berkeley",
-      year: "2010"
-    }
-  ],
-  experience: [
-    {
-      title: "Associate Professor",
-      company: "Utrecht University",
-      period: "2018 - Present",
-      description: "Teaching graduate-level courses in AI and ML. Leading research in NLP applications."
-    },
-    {
-      title: "Assistant Professor",
-      company: "University of Washington",
-      period: "2015 - 2018",
-      description: "Taught undergraduate CS courses and published 12 papers in top conferences."
-    }
-  ],
-  publications: [
-    {
-      title: "Advances in Self-Supervised Learning for Academic Research",
-      authors: "Johnson, J., Johnson, R., Williams, E.",
-      venue: "Journal of Artificial Intelligence",
-      year: "2023",
-      link: "https://example.com/paper1"
-    },
-    {
-      title: "Transformer Models in Academic Publishing",
-      authors: "Johnson, J., Brown, A.",
-      venue: "Conference on Machine Learning",
-      year: "2022"
-    }
-  ]
-};
-
 
 
 const WebsiteCustomization = () => {
   const { currentUser } = useFirebase();
   const [cvId, setCvId] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState("academic");
-  const [domain, setDomain] = useState("johnjohnson");
+  const [domain, setDomain] = useState(
+    currentUser?.displayName.toLowerCase().replace(/\s+/g, '')
+  );
   const [theme, setTheme] = useState("light");
   const [cvData, setCvData] = useState<ParsedCV | null>(null);
   const [showFullPreview, setShowFullPreview] = useState(false);
@@ -113,6 +56,7 @@ const WebsiteCustomization = () => {
     selectedTemplate: string;
     sections: Record<string, boolean>;
   } | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>("");
   const [sections, setSections] = useState({
     summary: true,
     education: true,
@@ -123,21 +67,41 @@ const WebsiteCustomization = () => {
     languages: true,
     references: true,
   });
+  const SECTION_ORDER = [
+    "summary",
+    "education",
+    "experience",
+    "achievements",
+    "publications",
+    "skills",
+    "languages",
+    "references"
+  ];
 
   // Load the data avaiable
   useEffect(() => {
-    // const data = mockCVData;
-    // setCvData(data);
 
     const loadUserCV = async () => {
       if (!currentUser) return;
       try {
         const userCVs = await getUserCVs(currentUser.uid);
+        const websiteSettings = await getWebsiteSettings(currentUser.uid);
         if (userCVs.length > 0) {
           // Get the most recently updated CV
           const mostRecentCV = userCVs[0];
           setCvData(mostRecentCV as unknown as ParsedCV);
           setCvId(mostRecentCV.id as string);
+
+          if (websiteSettings?.status) {
+            setWebsiteStatus(websiteSettings.status);
+          }
+
+          if (websiteSettings?.metadata) {
+            setOriginalSettings(websiteSettings.metadata);
+            setSelectedTemplate(websiteSettings.metadata.selectedTemplate);
+            setSections(websiteSettings.metadata.sections);
+            setLastUpdated(websiteSettings.updatedAt.toDate().toLocaleString());
+          }
 
           toast.success('Loaded your most recent CV');
         }
@@ -188,6 +152,15 @@ const WebsiteCustomization = () => {
 
       if (result.data?.success) {
         toast.success("Website updated successfully!");
+        saveSettingsAndRefreshTimestamp({
+          status: 'online',
+          metadata: {
+            selectedTemplate,
+            sections,
+            theme,
+            domain,
+          },
+        });
       }
       else {
         toast.error("Failed to update website.");
@@ -217,6 +190,15 @@ const WebsiteCustomization = () => {
 
       if (result.data?.success) {
         setWebsiteStatus('online');
+        saveSettingsAndRefreshTimestamp({
+          status: 'online',
+          metadata: {
+            selectedTemplate,
+            sections,
+            theme,
+            domain,
+          },
+        });
         toast.success(`Website Published at ${result.data.url}`);
       } else {
         setWebsiteStatus('offline');
@@ -246,7 +228,7 @@ const WebsiteCustomization = () => {
     sections: Record<string, boolean>;
     theme: string;
   }) => {
-    const styleRef = ref(storage, "websites/styles.css");
+    const styleRef = ref(storage, "styles.css");
     const firebaseCSSURL = await getDownloadURL(styleRef);
 
     const websiteHTML = `
@@ -281,14 +263,9 @@ const WebsiteCustomization = () => {
     );
 
     const result = await deployWebsite({
-      userId: domain,
-      website: websiteHTML,
-      metadata: {
-        selectedTemplate,
-        sections,
-        theme,
-        domain,
-      },
+      userId: currentUser.uid,
+      domain: domain,
+      websiteHTML: websiteHTML,
     });
 
     return result;
@@ -312,19 +289,23 @@ const WebsiteCustomization = () => {
       const unpublishWebsite = httpsCallable(functions, "deployWebsite");
 
       const result = await unpublishWebsite({
-        userId: domain,
-        website: minimalPlaceholder,
-        metadata: {
-          selectedTemplate: "minimal",
-          sections: {},
-          theme: "light",
-          domain,
-        },
+        userId: currentUser.uid,
+        domain: domain,
+        websiteHTML: minimalPlaceholder,
       });
 
       if (result.data?.success) {
         toast.success("Website unpublished successfully!");
         setWebsiteStatus('offline');
+        saveSettingsAndRefreshTimestamp({
+          status: 'offline',
+          metadata: {
+            selectedTemplate,
+            sections,
+            theme,
+            domain,
+          },
+        });
       } else {
         toast.error("Failed to unpublish.");
         setWebsiteStatus('online');
@@ -336,6 +317,15 @@ const WebsiteCustomization = () => {
     }
     finally {
       setWebsiteStatus('offline');
+    }
+  };
+
+  const saveSettingsAndRefreshTimestamp = async (settings: any) => {
+    await saveWebsiteSettings(currentUser.uid, settings);
+    const updated = await getWebsiteSettings(currentUser.uid);
+
+    if (updated?.updatedAt) {
+      setLastUpdated(updated.updatedAt.toDate().toLocaleString());
     }
   };
 
@@ -416,6 +406,7 @@ const WebsiteCustomization = () => {
               <WebsiteStatusCard
                 domain={domain}
                 status={websiteStatus}
+                lastUpdated={lastUpdated}
                 onToggleStatus={websiteStatus == 'online' ? handleUnpublish : handlePublish}
               />
 
@@ -425,18 +416,19 @@ const WebsiteCustomization = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {Object.entries(sections).map(([section, isVisible]) => (
+                    {SECTION_ORDER.map((section) => (
                       <div key={section} className="flex items-center justify-between">
                         <Label htmlFor={`website-section-${section}`} className="capitalize">
                           {section}
                         </Label>
                         <Switch
                           id={`website-section-${section}`}
-                          checked={isVisible}
+                          checked={sections[section]}
                           onCheckedChange={() => handleSectionToggle(section)}
                         />
                       </div>
                     ))}
+
 
                     <Button
                       className="w-full text-gray-400 border-gray-300 border-dashed line-through cursor-not-allowed"

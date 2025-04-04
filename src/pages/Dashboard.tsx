@@ -21,7 +21,7 @@ import CVSectionCard from '@/components/CVSectionCard';
 import WebsiteStatusCard from '@/components/WebsiteStatusCard';
 import { toast } from 'sonner';
 import { useFirebase } from '@/lib/firebase/FirebaseContext';
-import { getUserCVs, saveCV } from '@/lib/firebase/firestore';
+import { getUserCVs, getWebsiteSettings, saveCV } from '@/lib/firebase/firestore';
 import { type ParsedCV } from '@/types/parsed-cv';
 import AcademicIntegrations from '@/components/AcademicIntegration';
 import { useNavigate } from 'react-router-dom';
@@ -48,11 +48,11 @@ const Dashboard = () => {
   const [cvId, setCvId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
-  const [websiteStatus, setWebsiteStatus] = useState({
-    status: 'offline' as WebsiteStatus,
-    domain: `${currentUser?.displayName.toLowerCase().trim() ?? 'your-portfolio'
-      }.vita-academica.app`,
-  });
+  const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>(`offline`);
+  const [lastUpdated, setLastUpdated] = useState<string | null>("");
+  const [domain, setDomain] = useState(
+    currentUser?.displayName.toLowerCase().replace(/\s+/g, '')
+  );
 
   useEffect(() => {
     const loadUserCV = async () => {
@@ -61,6 +61,7 @@ const Dashboard = () => {
       setLoading(true);
       try {
         const userCVs = await getUserCVs(currentUser.uid);
+        const websiteSettings = await getWebsiteSettings(currentUser.uid);
 
         if (userCVs.length > 0) {
           const mostRecentCV = userCVs[0];
@@ -70,12 +71,12 @@ const Dashboard = () => {
             ...(mostRecentCV as unknown as ParsedCV),
           }));
           setCvId(mostRecentCV.id as string);
-          setWebsiteStatus({
-            domain: `${cvData?.personalInfo?.name.toLowerCase().trim() ??
-              websiteStatus.domain
-              }`,
-            status: websiteStatus.status,
-          });
+
+          if (websiteSettings) {
+            setWebsiteStatus(websiteSettings.status);
+            setLastUpdated(websiteSettings.updatedAt.toDate().toLocaleString());
+          }
+
           toast.success('Loaded your most recent CV');
         }
       } catch (error) {
@@ -116,15 +117,7 @@ const Dashboard = () => {
   };
 
   const handleToggleWebsiteStatus = () => {
-    setWebsiteStatus((prevStatus) => ({
-      ...prevStatus,
-      status:
-        prevStatus.status === 'online' ? 'offline' : 'online',
-    }));
-
-    toast.success(
-      `Website is now ${websiteStatus.status === 'online' ? 'offline' : 'online'}`
-    );
+    return
   };
 
   const getDefaultUserInitials = () => {
@@ -269,8 +262,9 @@ const Dashboard = () => {
               <AcademicIntegrations />
 
               <WebsiteStatusCard
-                domain={websiteStatus.domain}
-                status={websiteStatus.status}
+                domain={domain}
+                status={websiteStatus}
+                lastUpdated={lastUpdated}
                 onToggleStatus={handleToggleWebsiteStatus}
                 showEditButton={true}
               />

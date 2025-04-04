@@ -10,24 +10,24 @@ const bucket = admin.storage().bucket();
 const token = "1//09FteSpjMvmmZCgYIARAAGAkSNwF-L9IrD-m-6bwtYI_GGKTJb3oO7V1On5QKfQnxhSVYrITsjjA83Akpowq_IZmBGzuuWSdlg7E";
 
 export const deployWebsite = onCall({ region: "europe-west1" }, async (req) => {
-    const { userId, website } = req.data;
+    const { userId, domain, websiteHTML } = req.data;
 
-    if (!userId || !website) {
-        throw new Error("Missing userId or website");
+    if (!userId || !domain || !websiteHTML) {
+        throw new Error("Missing user ID, domain or website html");
     }
 
     const firebaseTools = await import("firebase-tools");
     const tools = firebaseTools.default;
 
     try {
-        const tempDir = path.join("/tmp", userId);
+        const tempDir = path.join("/tmp", domain);
         const indexPath = path.join(tempDir, "index.html");
 
         fs.mkdirSync(tempDir, { recursive: true });
-        fs.writeFileSync(indexPath, website, "utf-8");
+        fs.writeFileSync(indexPath, websiteHTML, "utf-8");
 
         await bucket.upload(indexPath, {
-            destination: `websites/${userId}/index.html`,
+            destination: `users/${userId}/website/index.html`,
             public: true,
             metadata: { contentType: "text/html" },
         });
@@ -36,14 +36,14 @@ export const deployWebsite = onCall({ region: "europe-west1" }, async (req) => {
 
         // Try to create hosting site if it doesn't exist
         try {
-            await tools.hosting.sites.create(userId, {
+            await tools.hosting.sites.create(domain, {
                 project: "testing-vita-academica",
                 token,
             });
-            console.log(`✅ Hosting site created: ${userId}`);
+            console.log(`✅ Hosting site created: ${domain}`);
         } catch (e) {
             if (e instanceof Error && e.message?.includes("already exists")) {
-                console.log(`Site ${userId} already exists, continuing...`);
+                console.log(`Site ${domain} already exists, continuing...`);
             } else {
                 throw e;
             }
@@ -53,7 +53,7 @@ export const deployWebsite = onCall({ region: "europe-west1" }, async (req) => {
         const firebaseConfig = {
             hosting: {
                 public: "./",
-                site: userId,
+                site: domain,
             },
         };
         fs.writeFileSync(firebaseJsonPath, JSON.stringify(firebaseConfig, null, 2));
@@ -66,7 +66,7 @@ export const deployWebsite = onCall({ region: "europe-west1" }, async (req) => {
         });
 
         console.log(`✅ Deployed to Firebase Hosting`);
-        const websiteUrl = `https://${userId}.web.app`;
+        const websiteUrl = `https://${domain}.web.app`;
 
         return { success: true, url: websiteUrl };
     } catch (error) {
