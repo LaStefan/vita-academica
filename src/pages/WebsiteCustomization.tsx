@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import WebsitePreview from "@/components/WebsitePreview";
-import { ParsedCV } from "@/services/documentParser";
+import { ParsedCV } from "@/types/parsed-cv";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { db } from "@/lib/firebase/firebase";
@@ -35,6 +35,8 @@ import { httpsCallable } from "firebase/functions";
 import WebsiteStatusCard from "@/components/WebsiteStatusCard";
 import { WebsiteStatus } from "@/components/WebsiteStatusCard";
 import { set } from "date-fns";
+import { getUserCVs } from "@/lib/firebase/firestore";
+import { useFirebase } from "@/lib/firebase/FirebaseContext";
 
 // Mock CV data for preview purposes, this should be the specific data of the current user
 const mockCVData: ParsedCV = {
@@ -94,9 +96,12 @@ const mockCVData: ParsedCV = {
   ]
 };
 
+
+
 const WebsiteCustomization = () => {
+  const { currentUser } = useFirebase();
+  const [cvId, setCvId] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState("academic");
-  const [sections, setSections] = useState<Record<string, boolean>>({});
   const [domain, setDomain] = useState("johnjohnson");
   const [theme, setTheme] = useState("light");
   const [cvData, setCvData] = useState<ParsedCV | null>(null);
@@ -108,25 +113,43 @@ const WebsiteCustomization = () => {
     selectedTemplate: string;
     sections: Record<string, boolean>;
   } | null>(null);
+  const [sections, setSections] = useState({
+    summary: true,
+    education: true,
+    experience: true,
+    achievements: true,
+    publications: true,
+    skills: true,
+    languages: true,
+    references: true,
+  });
 
   // Load the data avaiable
   useEffect(() => {
-    const data = mockCVData;
-    setCvData(data);
+    // const data = mockCVData;
+    // setCvData(data);
 
-    const dynamicSections: Record<string, boolean> = {};
+    const loadUserCV = async () => {
+      if (!currentUser) return;
+      try {
+        const userCVs = await getUserCVs(currentUser.uid);
+        if (userCVs.length > 0) {
+          // Get the most recently updated CV
+          const mostRecentCV = userCVs[0];
+          setCvData(mostRecentCV as unknown as ParsedCV);
+          setCvId(mostRecentCV.id as string);
 
-    Object.entries(data).forEach(([key, value]) => {
-      // If it's an object or array and not empty, we include the section
-      const isNonEmpty =
-        (Array.isArray(value) && value.length > 0) ||
-        (typeof value === 'object' && value !== null && Object.keys(value).length > 0);
+          toast.success('Loaded your most recent CV');
+        }
+      } catch (error) {
+        console.error('Error loading user CV data:', error);
+        toast.error('Failed to load your CV data');
+      } finally {
+      }
+    };
 
-      dynamicSections[key] = isNonEmpty;
-    });
-
-    setSections(dynamicSections);
-  }, []);
+    loadUserCV();
+  }, [currentUser]);
 
   useEffect(() => {
     if (!originalSettings) {

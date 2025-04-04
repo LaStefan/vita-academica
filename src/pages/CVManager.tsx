@@ -37,6 +37,7 @@ const CVManager = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('preview');
   const [sections, setSections] = useState({
+    summary: true,
     education: true,
     experience: true,
     achievements: true,
@@ -44,7 +45,6 @@ const CVManager = () => {
     skills: true,
     languages: true,
     references: true,
-    summary: true,
   });
 
   const [showAddSectionDialog, setShowAddSectionDialog] = useState(false);
