@@ -11,13 +11,13 @@ import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
 // Initialize Firebase Functions and get a reference to the service
-export const functions = getFunctions(app, "europe-west1");
+export const functions = getFunctions(app);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);

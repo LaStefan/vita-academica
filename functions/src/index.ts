@@ -7,9 +7,9 @@ import { defineSecret } from "firebase-functions/params";
 admin.initializeApp();
 
 const bucket = admin.storage().bucket();
-const TOKEN = defineSecret("CLI_TOKEN");
+const TOKEN = defineSecret("functions-token");
 
-export const deployWebsite = onCall({ region: "europe-west1", secrets: [TOKEN], }, async (req) => {
+export const deployWebsite = onCall({ secrets: [TOKEN], }, async (req) => {
     const { userId, domain, websiteHTML } = req.data;
 
     const token = TOKEN.value(); // Get the token value from the secret
@@ -42,7 +42,7 @@ export const deployWebsite = onCall({ region: "europe-west1", secrets: [TOKEN], 
         // Try to create hosting site if it doesn't exist
         try {
             await tools.hosting.sites.create(domain, {
-                project: "testing-vita-academica",
+                project: "vita-academica",
                 token,
             });
             console.log(`✅ Hosting site created: ${domain}`);
@@ -64,7 +64,7 @@ export const deployWebsite = onCall({ region: "europe-west1", secrets: [TOKEN], 
         fs.writeFileSync(firebaseJsonPath, JSON.stringify(firebaseConfig, null, 2));
 
         await tools.deploy({
-            project: "testing-vita-academica",
+            project: "vita-academica",
             cwd: tempDir,
             only: "hosting",
             token,

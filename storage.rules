@@ -17,14 +17,4 @@ service firebase.storage {
       allow read, write: if request.time < timestamp.date(2025, 4, 27);
     }
   }
-  match /b/{bucket}/o {
-    // Allow public read access to all website assets
-    match /websites/styles.css {
-      allow read;
-    }
-    match /websites/{userId}/index.html {
-      allow read;
-    }
-  }
 }
-

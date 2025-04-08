@@ -44,7 +44,7 @@ const WebsiteCustomization = () => {
   const [cvId, setCvId] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState("academic");
   const [domain, setDomain] = useState(
-    currentUser?.displayName.toLowerCase().replace(/\s+/g, '')
+    currentUser?.displayName.toLowerCase().replace(/\s+/g, '') ?? 'yourname'
   );
   const [theme, setTheme] = useState("light");
   const [cvData, setCvData] = useState<ParsedCV | null>(null);

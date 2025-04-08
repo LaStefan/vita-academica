@@ -51,7 +51,7 @@ const Dashboard = () => {
   const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatus>(`offline`);
   const [lastUpdated, setLastUpdated] = useState<string | null>("");
   const [domain, setDomain] = useState(
-    currentUser?.displayName.toLowerCase().replace(/\s+/g, '')
+    currentUser?.displayName.toLowerCase().replace(/\s+/g, '') ?? 'yourname'
   );
 
   useEffect(() => {
