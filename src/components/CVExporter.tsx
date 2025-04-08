@@ -216,11 +216,10 @@ const CVExporter: React.FC<CVExporterProps> = ({
 \\begin{document}
 \\begin{center}
   \\textbf{\\LARGE ${cvData?.personalInfo?.name || 'Full Name'}}\\\\
-  ${
-    cvData?.personalInfo?.title
-      ? `\\textit{${cvData.personalInfo.title}}\\\\`
-      : ''
-  }
+  ${cvData?.personalInfo?.title
+            ? `\\textit{${cvData.personalInfo.title}}\\\\`
+            : ''
+          }
   ${cvData?.personalInfo?.email || ''}
   ${cvData?.personalInfo?.phone ? ` | ${cvData.personalInfo.phone}` : ''}
 \\end{center}
@@ -229,15 +228,13 @@ const CVExporter: React.FC<CVExporterProps> = ({
 ${cvData?.summary || 'Professional summary goes here.'}
 
 \\section{EDUCATION}
-\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${
-          cvData?.education?.[0]?.year || 'Year'
-        }\\\\
+\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${cvData?.education?.[0]?.year || 'Year'
+          }\\\\
 ${cvData?.education?.[0]?.institution || 'Institution'}
 
 \\section{EXPERIENCE}
-\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${
-          cvData?.experience?.[0]?.period || 'Period'
-        }\\\\
+\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${cvData?.experience?.[0]?.period || 'Period'
+          }\\\\
 ${cvData?.experience?.[0]?.company || 'Company'}\\\\
 ${cvData?.experience?.[0]?.description || 'Job description.'}
 
@@ -256,33 +253,29 @@ ${cvData?.experience?.[0]?.description || 'Job description.'}
 \\begin{document}
 \\begin{center}
   \\textbf{\\LARGE ${cvData?.personalInfo?.name || 'Full Name'}}\\\\
-  ${
-    cvData?.personalInfo?.title
-      ? `\\textit{${cvData.personalInfo.title}}\\\\`
-      : ''
-  }
+  ${cvData?.personalInfo?.title
+            ? `\\textit{${cvData.personalInfo.title}}\\\\`
+            : ''
+          }
   ${cvData?.personalInfo?.email || ''}
   ${cvData?.personalInfo?.phone ? ` | ${cvData.personalInfo.phone}` : ''}
 \\end{center}
 
 \\section*{Publications}
 \\begin{enumerate}
-${
-  cvData?.publications?.[0]
-    ? `\\item ${cvData.publications[0].authors.replace(
-        /,\\s*([^,]+)$/,
-        ' and $1'
-      )} (${cvData.publications[0].year}). \\textit{${
-        cvData.publications[0].title
-      }}. ${cvData.publications[0].venue}.`
-    : '\\item Authors (Year). \\textit{Title}. Venue.'
-}
+${cvData?.publications?.[0]
+            ? `\\item ${cvData.publications[0].authors.replace(
+              /,\\s*([^,]+)$/,
+              ' and $1'
+            )} (${cvData.publications[0].year}). \\textit{${cvData.publications[0].title
+            }}. ${cvData.publications[0].venue}.`
+            : '\\item Authors (Year). \\textit{Title}. Venue.'
+          }
 \\end{enumerate}
 
 \\section*{Education}
-\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${
-          cvData?.education?.[0]?.year || 'Year'
-        }\\\\
+\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${cvData?.education?.[0]?.year || 'Year'
+          }\\\\
 ${cvData?.education?.[0]?.institution || 'Institution'}
 
 \\section*{Research Interests}
@@ -313,16 +306,14 @@ ${cvData?.summary || 'Research interests summary goes here.'}
 ${cvData?.summary || 'Professional profile goes here.'}
 
 \\section*{EXPERIENCE}
-\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${
-          cvData?.experience?.[0]?.period || 'Period'
-        }\\\\
+\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${cvData?.experience?.[0]?.period || 'Period'
+          }\\\\
 ${cvData?.experience?.[0]?.company || 'Company'}\\\\
 ${cvData?.experience?.[0]?.description || 'Job description.'}
 
 \\section*{EDUCATION}
-\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${
-          cvData?.education?.[0]?.year || 'Year'
-        }\\\\
+\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${cvData?.education?.[0]?.year || 'Year'
+          }\\\\
 ${cvData?.education?.[0]?.institution || 'Institution'}
 
 \\end{document}`;
@@ -338,11 +329,10 @@ ${cvData?.education?.[0]?.institution || 'Institution'}
 \\begin{document}
 \\begin{center}
   \\textbf{\\LARGE ${cvData?.personalInfo?.name || 'Full Name'}}\\\\
-  ${
-    cvData?.personalInfo?.title
-      ? `\\textit{${cvData.personalInfo.title}}\\\\`
-      : ''
-  }
+  ${cvData?.personalInfo?.title
+            ? `\\textit{${cvData.personalInfo.title}}\\\\`
+            : ''
+          }
   ${cvData?.personalInfo?.email || ''}
   ${cvData?.personalInfo?.phone ? ` | ${cvData.personalInfo.phone}` : ''}
 \\end{center}
@@ -351,20 +341,17 @@ ${cvData?.education?.[0]?.institution || 'Institution'}
 ${cvData?.summary || 'Professional summary goes here.'}
 
 \\section*{Education}
-\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${
-          cvData?.education?.[0]?.year || 'Year'
-        }\\\\
+\\textbf{${cvData?.education?.[0]?.degree || 'Degree'}} \\hfill ${cvData?.education?.[0]?.year || 'Year'
+          }\\\\
 ${cvData?.education?.[0]?.institution || 'Institution'}
-${
-  cvData?.education?.[0]?.description
-    ? `\\\\${cvData.education[0].description}`
-    : ''
-}
+${cvData?.education?.[0]?.description
+            ? `\\\\${cvData.education[0].description}`
+            : ''
+          }
 
 \\section*{Experience}
-\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${
-          cvData?.experience?.[0]?.period || 'Period'
-        }\\\\
+\\textbf{${cvData?.experience?.[0]?.title || 'Job Title'}} \\hfill ${cvData?.experience?.[0]?.period || 'Period'
+          }\\\\
 ${cvData?.experience?.[0]?.company || 'Company'}\\\\
 ${cvData?.experience?.[0]?.description || 'Job description.'}
 
