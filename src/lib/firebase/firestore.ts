@@ -1,15 +1,15 @@
 
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  orderBy, 
-  serverTimestamp, 
+import {
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  serverTimestamp,
   DocumentData,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -25,11 +25,14 @@ export const cvsCollection = collection(db, 'cvs');
 // Activities collection
 export const activitiesCollection = collection(db, 'activities');
 
+// website collection
+export const websiteCollection = collection(db, 'website');
+
 // Add or update CV
 export const saveCV = async (userId: string, cvData: ParsedCV, cvId?: string): Promise<string> => {
   try {
     const userCvsCollection = collection(db, 'users', userId, 'cvs');
-    
+
     if (cvId) {
       // Update existing CV
       const cvRef = doc(userCvsCollection, cvId);
@@ -60,7 +63,7 @@ export const getUserCVs = async (userId: string): Promise<DocumentData[]> => {
     const userCvsCollection = collection(db, 'users', userId, 'cvs');
     const q = query(userCvsCollection, orderBy('updatedAt', 'desc'));
     const querySnapshot = await getDocs(q);
-    
+
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -101,7 +104,7 @@ export const getUserProfile = async (userId: string): Promise<DocumentData | nul
   try {
     const userRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userRef);
-    
+
     if (userDoc.exists()) {
       return userDoc.data();
     } else {
@@ -116,7 +119,7 @@ export const getUserProfile = async (userId: string): Promise<DocumentData | nul
 // Save website settings
 export const saveWebsiteSettings = async (userId: string, settings: any): Promise<void> => {
   try {
-    const websiteRef = doc(db, 'users', userId, 'websites', 'main');
+    const websiteRef = doc(db, 'users', userId, 'website', 'main');
     await setDoc(websiteRef, {
       ...settings,
       updatedAt: serverTimestamp()
@@ -130,9 +133,9 @@ export const saveWebsiteSettings = async (userId: string, settings: any): Promis
 // Get website settings
 export const getWebsiteSettings = async (userId: string): Promise<DocumentData | null> => {
   try {
-    const websiteRef = doc(db, 'users', userId, 'websites', 'main');
+    const websiteRef = doc(db, 'users', userId, 'website', 'main');
     const websiteDoc = await getDoc(websiteRef);
-    
+
     if (websiteDoc.exists()) {
       return websiteDoc.data();
     } else {
@@ -146,18 +149,18 @@ export const getWebsiteSettings = async (userId: string): Promise<DocumentData |
 
 // Log user activity
 export const logActivity = async (
-  userId: string, 
+  userId: string,
   activity: Omit<ActivityItem, 'id' | 'date'> & { filePath?: string }
 ): Promise<string> => {
   try {
     const userActivitiesCollection = collection(db, 'users', userId, 'activities');
     const newActivityRef = doc(userActivitiesCollection);
-    
+
     await setDoc(newActivityRef, {
       ...activity,
       timestamp: serverTimestamp()
     });
-    
+
     return newActivityRef.id;
   } catch (error) {
     console.error('Error logging activity:', error);
@@ -171,7 +174,7 @@ export const getUserActivities = async (userId: string): Promise<ActivityItem[]>
     const userActivitiesCollection = collection(db, 'users', userId, 'activities');
     const q = query(userActivitiesCollection, orderBy('timestamp', 'desc'));
     const querySnapshot = await getDocs(q);
-    
+
     return querySnapshot.docs.map(doc => {
       const data = doc.data();
       return {

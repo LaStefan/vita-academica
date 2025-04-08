@@ -37,12 +37,12 @@ type CVSectionCardProps = {
   title: string;
   icon: React.ReactNode;
   type:
-    | 'experience'
-    | 'education'
-    | 'publications'
-    | 'skills'
-    | 'achievements'
-    | 'references';
+  | 'experience'
+  | 'education'
+  | 'publications'
+  | 'skills'
+  | 'achievements'
+  | 'references';
   items: any[];
   cvData: ParsedCV;
   onUpdate: (updatedCV: ParsedCV) => void;
@@ -639,7 +639,7 @@ const CVSectionCard: React.FC<CVSectionCardProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </Card >
   );
 };
 
