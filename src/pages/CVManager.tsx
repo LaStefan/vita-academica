@@ -189,7 +189,7 @@ const CVManager = () => {
   const documentMetadata = cvData?.cvFileUrl
     ? getDocumentMetadata(
       cvData.cvFileUrl,
-      `${cvData.personalInfo?.name}'s CV` || 'Document'
+      cvData.personalInfo?.name ? `${cvData.personalInfo.name}'s CV` : 'Document'
     )
     : undefined;
 

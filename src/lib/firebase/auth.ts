@@ -114,7 +114,7 @@ export const updatePassword = async (
 // Update user profile
 export const updateUserProfile = async (
   user: User,
-  profileData: { displayName?: string; photoURL?: string; [key: string]: any }
+  profileData: { displayName?: string; photoURL?: string; [key: string]: unknown }
 ): Promise<void> => {
   try {
     // Update Firebase Auth profile if display name or photo URL is provided

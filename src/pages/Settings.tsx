@@ -76,7 +76,7 @@ type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 const Settings = () => {
   const { currentUser } = useFirebase();
   const [loading, setLoading] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<unknown>(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -145,7 +145,7 @@ const Settings = () => {
       });
 
       toast.success('Account information updated successfully');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating account information:', error);
       toast.error(error.message || 'Failed to update account information');
     } finally {
@@ -169,7 +169,7 @@ const Settings = () => {
         confirmPassword: '',
       });
       toast.success('Password updated successfully');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating password:', error);
       toast.error(
         error.message ||
@@ -204,7 +204,7 @@ const Settings = () => {
 
       setPhotoURL(result.url);
       toast.success('Profile photo updated successfully');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading profile photo:', error);
       toast.error(error.message || 'Failed to upload profile photo');
     } finally {

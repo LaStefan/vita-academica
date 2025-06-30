@@ -1,20 +1,26 @@
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // This rule allows anyone with your Storage bucket reference to view, edit,
-    // and delete all data in your Storage bucket. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Storage bucket will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Storage bucket will be denied until you Update
-    // your rules
+    // User uploads (PDFs, CVs, DOCX etc.)
+    match /user_uploads/{userId}/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Parsed document output (optional)
+    match /parsed_documents/{userId}/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Public assets (if needed)
+    match /public_assets/{assetName} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Default deny
     match /{allPaths=**} {
-      allow read, write: if request.time < timestamp.date(2025, 4, 27);
+      allow read, write: if false;
     }
   }
 }

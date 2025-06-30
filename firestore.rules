@@ -1,19 +1,38 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    // User profiles - users can read/write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // User subcollections (CV entries, education, experience, etc.)
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Public profiles - allow read access to basic profile info for sharing
+    match /public_profiles/{userId} {
+      allow read: if true; // Anyone can read public profiles
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Admin collection - only for admin users
+    match /admin/{docId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Analytics or app-wide settings (read-only for authenticated users)
+    match /app_settings/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Deny all other access by default
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 4, 14);
+      allow read, write: if false;
     }
   }
 }

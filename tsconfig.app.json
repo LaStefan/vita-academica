@@ -24,7 +24,13 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["vite/client"]
   },
-  "include": ["src", "functions/lib/functions", "functions/lib/index.js"]
+  "include": [
+    "src",
+    "functions/lib/functions",
+    "functions/lib/index.js",
+    "vite-env.d.ts"
+  ]
 }
