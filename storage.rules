@@ -2,9 +2,25 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // User uploads (PDFs, CVs, DOCX etc.)
-    match /user_uploads/{userId}/{fileName} {
+    // User generic uploads (PDFs, documents, etc.)
+    match /users/{userId}/uploads/{fileName} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // User CV files
+    match /users/{userId}/cvs/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // User profile images
+    match /users/{userId}/profile/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // User website files (all files in website directory)
+    match /users/{userId}/website/{allPaths=**} {
+      allow read: if true; // Public read access for websites
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
     // Parsed document output (optional)
@@ -16,6 +32,12 @@ service firebase.storage {
     match /public_assets/{assetName} {
       allow read: if true;
       allow write: if false;
+    }
+
+    // Global CSS file for website generation
+    match /styles.css {
+      allow read: if true;
+      allow write: if false; // Only admins can update via Firebase console
     }
 
     // Default deny

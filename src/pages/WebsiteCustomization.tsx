@@ -108,7 +108,6 @@ const WebsiteCustomization = () => {
       } catch (error) {
         console.error('Error loading user CV data:', error);
         toast.error('Failed to load your CV data');
-      } finally {
       }
     };
 
