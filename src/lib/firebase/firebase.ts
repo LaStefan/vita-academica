@@ -32,7 +32,7 @@ if (import.meta.env.DEV) {
   connectAuthEmulator(auth, 'http://localhost:9099');
   connectFirestoreEmulator(db, 'localhost', 8085);
   connectStorageEmulator(storage, 'localhost', 9199);
-  // connectFunctionsEmulator(functions, 'localhost', 5001);
+  connectFunctionsEmulator(functions, 'localhost', 5001);
 
   console.log('Using Firebase services in emulation mode');
 }
